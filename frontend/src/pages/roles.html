@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roles & Demo Accounts - Shikola Pro</title>
+    <link rel="stylesheet" href="../public/css/auth.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .roles-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .page-header h1 {
+            color: var(--ocean-blue);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .page-header p {
+            color: var(--dark-gray);
+            font-size: 1.1rem;
+        }
+        
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .role-card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid var(--light-gray);
+            transition: all 0.3s ease;
+        }
+        
+        .role-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border-color: var(--teal);
+        }
+        
+        .role-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .role-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .role-title h3 {
+            margin: 0;
+            color: var(--ocean-blue);
+            font-size: 1.3rem;
+        }
+        
+        .role-title p {
+            margin: 0;
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .role-description {
+            color: var(--dark-gray);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        
+        .demo-account {
+            background: var(--light-gray);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .demo-account h4 {
+            color: var(--ocean-blue);
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+        }
+        
+        .account-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .account-field {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .account-field i {
+            color: var(--teal);
+            width: 20px;
+        }
+        
+        .account-field span {
+            color: var(--dark-gray);
+        }
+        
+        .test-btn {
+            background: var(--ocean-blue);
+            color: var(--white);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .test-btn:hover {
+            background: var(--teal);
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--ocean-blue);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: color 0.3s ease;
+        }
+        
+        .back-link:hover {
+            color: var(--teal);
+        }
+        
+        /* Role-specific colors */
+        .system-admin { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
+        .tenant { background: linear-gradient(135deg, #00b894, #55efc4); }
+        .accountant { background: linear-gradient(135deg, #fdcb6e, #ffeaa7); }
+        .hr { background: linear-gradient(135deg, #e17055, #fab1a0); }
+        .registry { background: linear-gradient(135deg, #0984e3, #74b9ff); }
+        .hostel { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
+        .operations { background: linear-gradient(135deg, #00b894, #55efc4); }
+        .staff { background: linear-gradient(135deg, #fd79a8, #fdcb6e); }
+        .lecturer { background: linear-gradient(135deg, #e17055, #fab1a0); }
+        .student { background: linear-gradient(135deg, #0984e3, #74b9ff); }
+        .parent { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
+    </style>
+</head>
+<body>
+    <div class="roles-container">
+        <a href="signin.html" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Back to Sign In
+        </a>
+        
+        <div class="page-header">
+            <h1>Shikola Pro User Roles</h1>
+            <p>Explore different user roles and test with demo accounts</p>
+        </div>
+        
+        <div class="roles-grid">
+            <!-- System Admin -->
+            <div class="role-card">
+                <div class="role-header">
+                    <div class="role-icon system-admin">
+                        <i class="fas fa-user-shield" style="color: white;"></i>
+                    </div>
+                    <div class="role-title">
+                        <h3>System Administrator</h3>
+                        <p>System Admin</p>
+                    </div>
+                </div>
+                <div class="role-description">
+                    Manages the entire Shikola Pro platform, handles system configurations, manages tenants, and oversees all administrative functions across the multi-tenant environment.
+                </div>
+                <div class="demo-account">
+                    <h4>Demo Account</h4>
+                    <div class="account-details">
+                        <div class="account-field">
+                            <i class="fas fa-envelope"></i>
+                            <span>sysadmin@shikola.com</span>
+                        </div>
+                        <div class="account-field">
+                            <i class="fas fa-lock"></i>
+                            <span>Password: admin123</span>
+                        </div>
+                    </div>
+                    <button class="test-btn" onclick="testLogin('sysadmin@shikola.com', 'admin123')">Test Login</button>
+                </div>
+            </div>
+            
+            <!-- Tenant Admin -->
+            <div class="role-card">
+                <div class="role-header">
+                    <div class="role-icon tenant">
+                        <i class="fas fa-building" style="color: white;"></i>
+                    </div>
+                    <div class="role-title">
+                        <h3>Tenant Administrator</h3>
+                        <p>Tenant</p>
+                    </div>
+                </div>
+                <div class="role-description">
+                    Manages a specific institution/tenant, handles user management, system configuration for their institution, and oversees all operations within their tenant.
+                </div>
+                <div class="demo-account">
+                    <h4>Demo Account</h4>
+                    <div class="account-details">
+                        <div class="account-field">
+                            <i class="fas fa-envelope"></i>
+                            <span>tenant@shikola.com</span>
+                        </div>
+                        <div class="account-field">
+                            <i class="fas fa-lock"></i>
+                            <span>Password: tenant123</span>
+                        </div>
+                    </div>
+                    <button class="test-btn" onclick="testLogin('tenant@shikola.com', 'tenant123')">Test Login</button>
+                </div>
+            </div>
+            
+            <!-- Accountant -->
+            <div class="role-card">
+                <div class="role-header">
+                    <div class="role-icon accountant">
+                        <i class="fas fa-calculator" style="color: white;"></i>
+                    </div>
+                    <div class="role-title">
+                        <h3>Accountant</h3>
+                        <p>Accountant</p>
+                    </div>
+                </div>
+                <div class="role-description">
+                    Manages financial operations, handles fee collections, generates financial reports, manages payroll, and oversees all accounting functions within the institution.
+                </div>
+                <div class="demo-account">
+                    <h4>Demo Account</h4>
+                    <div class="account-details">
+                        <div class="account-field">
+                            <i class="fas fa-envelope"></i>
+                            <span>accountant@shikola.com</span>
+                        </div>
+                        <div class="account-field">
+                            <i class="fas fa-lock"></i>
+                            <span>Password: finance123</span>
+                        </div>
+                    </div>
+                    <button class="test-btn" onclick="testLogin('accountant@shikola.com', 'finance123')">Test Login</button>
+                </div>
+            </div>
+            
+            <!-- HR Manager -->
+            <div class="role-card">
+                <div class="role-header">
+                    <div class="role-icon hr">
+                        <i class="fas fa-users-cog" style="color: white;"></i>
+                    </div>
+                    <div class="role-title">
+                        <h3>HR Manager</h3>
+                        <p>HR</p>
+                    </div>
+                </div>
+                <div class="role-description">
+                    Manages human resources, handles staff recruitment, employee records, performance management, and oversees all HR-related functions.
+                </div>
+                <div class="demo-account">
+                    <h4>Demo Account</h4>
+                    <div class="account-details">
+                        <div class="account-field">
+                            <i class="fas fa-envelope"></i>
+                            <span>hr@shikola.com</span>
+                        </div>
+                        <div class="account-field">
+                            <i class="fas fa-lock"></i>
+                            <span>Password: hr123</span>
+                        </div>
+                    </div>
+                    <button class="test-btn" onclick="testLogin('hr@shikola.com', 'hr123')">Test Login</button>
+                </div>
+            </div>
+            
+            <!-- Registry Officer -->
+            <div class="role-card">
+                <div class="role-header">
+                    <div class="role-icon registry">
+                        <i class="fas fa-file-alt" style="color: white;"></i>
+                    </div>
+                    <div class="role-title">
+                        <h3>Registry Officer</h3>
+                        <p>Registry</p>
+                    </div>
+                </div>
+                <div class="role-description">
+                    Manages student admissions, academic records, course registration, transcript processing, and maintains all academic documentation.
+                </div>
+                <div class="demo-account">
+                    <h4>Demo Account</h4>
+                    <div class="account-details">
+                        <div class="account-field">
+                            <i class="fas fa-envelope"></i>
+                            <span>registry@shikola.com</span>
+                        </div>
+                        <div class="account-field">
+                            <i class="fas fa-lock"></i>
+                            <span>Password: records123</span>
+                        </div>
+                    </div>
+                    <button class="test-btn" onclick="testLogin('registry@shikola.com', 'records123')">Test Login</button>
+                </div>
+            </div>
+            
+            <!-- Hostel Manager -->
+            <div class="role-card">
+                <div class="role-header">
+                    <div class="role-icon hostel">
+                        <i class="fas fa-bed" style="color: white;"></i>
+                    </div>
+                    <div class="role-title">
+                        <h3>Hostel Manager</h3>
+                        <p>Hostel</p>
+                    </div>
+                </div>
+                <div class="role-description">
+                    Manages hostel accommodations, room allocations, hostel maintenance, student welfare in hostels, and handles all residential facility operations.
+                </div>
+                <div class="demo-account">
+                    <h4>Demo Account</h4>
+                    <div class="account-details">
+                        <div class="account-field">
+                            <i class="fas fa-envelope"></i>
+                            <span>hostel@shikola.com</span>
+                        </div>
+                        <div class="account-field">
+                            <i class="fas fa-lock"></i>
+                            <span>Password: hostel123</span>
+                        </div>
+                    </div>
+                    <button class="test-btn" onclick="testLogin('hostel@shikola.com', 'hostel123')">Test Login</button>
+                </div>
+            </div>
+            
+            <!-- Operations Manager -->
+            <div class="role-card">
+                <div class="role-header">
+                    <div class="role-icon operations">
+                        <i class="fas fa-cogs" style="color: white;"></i>
+                    </div>
+                    <div class="role-title">
+                        <h3>Operations Manager</h3>
+                        <p>Operations</p>
+                    </div>
+                </div>
+                <div class="role-description">
+                    Manages daily operations, facility maintenance, logistics, security, and ensures smooth functioning of all institutional operations.
+                </div>
+                <div class="demo-account">
+                    <h4>Demo Account</h4>
+                    <div class="account-details">
+                        <div class="account-field">
+                            <i class="fas fa-envelope"></i>
+                            <span>operations@shikola.com</span>
+                        </div>
+                        <div class="account-field">
+                            <i class="fas fa-lock"></i>
+                            <span>Password: ops123</span>
+                        </div>
+                    </div>
+                    <button class="test-btn" onclick="testLogin('operations@shikola.com', 'ops123')">Test Login</button>
+                </div>
+            </div>
+            
+            <!-- Staff -->
+            <div class="role-card">
+                <div class="role-header">
+                    <div class="role-icon staff">
+                        <i class="fas fa-user-tie" style="color: white;"></i>
+                    </div>
+                    <div class="role-title">
+                        <h3>General Staff</h3>
+                        <p>Staff</p>
+                    </div>
+                </div>
+                <div class="role-description">
+                    General staff members who support various administrative and operational functions within the institution.
+                </div>
+                <div class="demo-account">
+                    <h4>Demo Account</h4>
+                    <div class="account-details">
+                        <div class="account-field">
+                            <i class="fas fa-envelope"></i>
+                            <span>staff@shikola.com</span>
+                        </div>
+                        <div class="account-field">
+                            <i class="fas fa-lock"></i>
+                            <span>Password: staff123</span>
+                        </div>
+                    </div>
+                    <button class="test-btn" onclick="testLogin('staff@shikola.com', 'staff123')">Test Login</button>
+                </div>
+            </div>
+            
+            <!-- Lecturer -->
+            <div class="role-card">
+                <div class="role-header">
+                    <div class="role-icon lecturer">
+                        <i class="fas fa-chalkboard-teacher" style="color: white;"></i>
+                    </div>
+                    <div class="role-title">
+                        <h3>Lecturer</h3>
+                        <p>Lecturer</p>
+                    </div>
+                </div>
+                <div class="role-description">
+                    Teaches courses, manages student assessments, uploads learning materials, and handles all academic teaching responsibilities.
+                </div>
+                <div class="demo-account">
+                    <h4>Demo Account</h4>
+                    <div class="account-details">
+                        <div class="account-field">
+                            <i class="fas fa-envelope"></i>
+                            <span>lecturer@shikola.com</span>
+                        </div>
+                        <div class="account-field">
+                            <i class="fas fa-lock"></i>
+                            <span>Password: teach123</span>
+                        </div>
+                    </div>
+                    <button class="test-btn" onclick="testLogin('lecturer@shikola.com', 'teach123')">Test Login</button>
+                </div>
+            </div>
+            
+            <!-- Student -->
+            <div class="role-card">
+                <div class="role-header">
+                    <div class="role-icon student">
+                        <i class="fas fa-graduation-cap" style="color: white;"></i>
+                    </div>
+                    <div class="role-title">
+                        <h3>Student</h3>
+                        <p>Student</p>
+                    </div>
+                </div>
+                <div class="role-description">
+                    Accesses course materials, submits assignments, checks grades, manages academic records, and participates in learning activities.
+                </div>
+                <div class="demo-account">
+                    <h4>Demo Account</h4>
+                    <div class="account-details">
+                        <div class="account-field">
+                            <i class="fas fa-envelope"></i>
+                            <span>student@shikola.com</span>
+                        </div>
+                        <div class="account-field">
+                            <i class="fas fa-lock"></i>
+                            <span>Password: study123</span>
+                        </div>
+                    </div>
+                    <button class="test-btn" onclick="testLogin('student@shikola.com', 'study123')">Test Login</button>
+                </div>
+            </div>
+            
+            <!-- Parent -->
+            <div class="role-card">
+                <div class="role-header">
+                    <div class="role-icon parent">
+                        <i class="fas fa-users" style="color: white;"></i>
+                    </div>
+                    <div class="role-title">
+                        <h3>Parent</h3>
+                        <p>Parent</p>
+                    </div>
+                </div>
+                <div class="role-description">
+                    Monitors student progress, views academic reports, manages fee payments, and stays informed about their child's educational activities.
+                </div>
+                <div class="demo-account">
+                    <h4>Demo Account</h4>
+                    <div class="account-details">
+                        <div class="account-field">
+                            <i class="fas fa-envelope"></i>
+                            <span>parent@shikola.com</span>
+                        </div>
+                        <div class="account-field">
+                            <i class="fas fa-lock"></i>
+                            <span>Password: parent123</span>
+                        </div>
+                    </div>
+                    <button class="test-btn" onclick="testLogin('parent@shikola.com', 'parent123')">Test Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function testLogin(email, password) {
+            // Store credentials in sessionStorage for the signin page to use
+            sessionStorage.setItem('testEmail', email);
+            sessionStorage.setItem('testPassword', password);
+            
+            // Redirect to signin page
+            window.location.href = 'signin.html';
+        }
+        
+        // Auto-fill form if coming from role selection
+        window.addEventListener('load', function() {
+            const testEmail = sessionStorage.getItem('testEmail');
+            const testPassword = sessionStorage.getItem('testPassword');
+            
+            if (testEmail && testPassword) {
+                // Clear the session storage
+                sessionStorage.removeItem('testEmail');
+                sessionStorage.removeItem('testPassword');
+            }
+        });
+    </script>
+</body>
+</html>

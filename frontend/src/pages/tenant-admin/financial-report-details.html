@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Financial Report Details</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="/shared-assets/js/tenant-admin-save-utility.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Font family setup */
+        body {
+            font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Consistent font sizes */
+        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-sm { font-size: 0.825rem !important; line-height: 1.125rem !important; }
+        .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .text-lg { font-size: 0.925rem !important; line-height: 1.375rem !important; }
+        .text-xl { font-size: 0.975rem !important; line-height: 1.5rem !important; }
+        .text-2xl { font-size: 1.025rem !important; line-height: 1.625rem !important; }
+        .text-3xl { font-size: 1.075rem !important; line-height: 1.75rem !important; }
+
+        /* Override any larger font sizes */
+        .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+
+        /* Custom scrollbar to match app theme */
+        body, body * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        body::-webkit-scrollbar,
+        body *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        body::-webkit-scrollbar-track,
+        body *::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        body::-webkit-scrollbar-thumb,
+        body *::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #f97316, #ea580c);
+            border-radius: 9999px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover,
+        body *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ea580c, #c2410c);
+        }
+
+        /* Chart container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Print styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+        }
+
+        .print-only {
+            display: none;
+        }
+
+        /* Ensure consistent small text throughout */
+        h1 { font-size: 1.25rem !important; }
+        h2 { font-size: 1.125rem !important; }
+        h3 { font-size: 1rem !important; }
+        h4 { font-size: 0.925rem !important; }
+        h5 { font-size: 0.875rem !important; }
+        h6 { font-size: 0.825rem !important; }
+        
+        /* Input and button text sizes */
+        input, button, select, textarea {
+            font-size: 0.825rem !important;
+        }
+
+        /* Badge and label text */
+        .badge, .label {
+            font-size: 0.7rem !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        selectedPeriod: 'monthly',
+        selectedYear: new Date().getFullYear(),
+        selectedMonth: new Date().getMonth(),
+        currentDate: new Date(),
+        monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        
+        // Financial data - will be populated from finance pages
+        incomeData: [],
+        expenseData: [],
+        monthlyTrend: [],
+        recentTransactions: [],
+        
+        init() {
+            this.loadFinancialData();
+            this.initCharts();
+        },
+        
+        loadFinancialData() {
+            // Load financial data from database or API
+            // This will fetch data from the same source as other finance pages
+            try {
+                // Try to load from localStorage first (if data is cached)
+                const cachedData = localStorage.getItem('shikola_financial_data');
+                if (cachedData) {
+                    const data = JSON.parse(cachedData);
+                    this.incomeData = data.incomeData || [];
+                    this.expenseData = data.expenseData || [];
+                    this.monthlyTrend = data.monthlyTrend || [];
+                    this.recentTransactions = data.recentTransactions || [];
+                } else {
+                    // Fetch from server or database
+                    this.fetchFinancialData();
+                }
+            } catch (error) {
+                console.error('Error loading financial data:', error);
+                // Initialize with empty arrays if data loading fails
+                this.incomeData = [];
+                this.expenseData = [];
+                this.monthlyTrend = [];
+                this.recentTransactions = [];
+            }
+        },
+        
+        fetchFinancialData() {
+            // This method should be implemented to fetch data from your backend
+            // For now, it will initialize empty data
+            // In a real implementation, this would make an API call to fetch financial data
+            
+            // Example API call structure:
+            // fetch('/api/financial-data')
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         this.incomeData = data.incomeData || [];
+            //         this.expenseData = data.expenseData || [];
+            //         this.monthlyTrend = data.monthlyTrend || [];
+            //         this.recentTransactions = data.recentTransactions || [];
+            //         // Cache the data
+            //         localStorage.setItem('shikola_financial_data', JSON.stringify(data));
+            //     })
+            //     .catch(error => {
+            //         console.error('Error fetching financial data:', error);
+            //     });
+        },
+        
+        refreshData() {
+            // Force refresh of financial data
+            localStorage.removeItem('shikola_financial_data');
+            this.loadFinancialData();
+            this.initCharts();
+        },
+        
+        getTotalIncome() {
+            return this.incomeData.reduce((sum, item) => sum + item.amount, 0);
+        },
+        
+        getTotalExpenses() {
+            return this.expenseData.reduce((sum, item) => sum + item.amount, 0);
+        },
+        
+        getNetProfit() {
+            return this.getTotalIncome() - this.getTotalExpenses();
+        },
+        
+        getProfitMargin() {
+            const total = this.getTotalIncome();
+            return total > 0 ? ((this.getNetProfit() / total) * 100).toFixed(1) : 0;
+        },
+        
+        exportReport() {
+            window.print();
+        },
+        
+        downloadPDF() {
+            // Placeholder for PDF generation
+            alert('PDF download feature will be implemented soon');
+        },
+        
+        initCharts() {
+            // Initialize trend chart
+            const ctx = document.getElementById('trendChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: this.monthlyTrend.map(item => item.month),
+                        datasets: [{
+                            label: 'Income',
+                            data: this.monthlyTrend.map(item => item.income),
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Expenses',
+                            data: this.monthlyTrend.map(item => item.expenses),
+                            borderColor: 'rgb(239, 68, 68)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'ZMW ' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }" x-init="init()" class="min-h-screen flex">
+        <!-- Sidebar -->
+        <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+            <div class="flex justify-center mb-10">
+                <div class="relative">
+                    <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                    <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                    <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                        <span class="w-6 flex justify-center">
+                            <i class="fas fa-home"></i>
+                        </span>
+                        <span class="flex-1">Home</span>
+                    </a>
+                    <a href="academics.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                        <span class="w-6 flex justify-center">
+                            <i class="fas fa-graduation-cap"></i>
+                        </span>
+                        <span class="flex-1">Academics</span>
+                    </a>
+                    <a href="users.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                        <span class="w-6 flex justify-center">
+                            <i class="fas fa-users"></i>
+                        </span>
+                        <span class="flex-1">Users</span>
+                    </a>
+                    <a href="finance.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                        <span class="w-6 flex justify-center">
+                            <i class="fas fa-chart-line"></i>
+                        </span>
+                        <span class="font-medium flex-1">Finance</span>
+                    </a>
+                    <a href="campus-resources.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                        <span class="w-6 flex justify-center">
+                            <i class="fas fa-building"></i>
+                        </span>
+                        <span class="flex-1">Campus Resources</span>
+                    </a>
+                    <a href="communications.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                        <span class="w-6 flex justify-center">
+                            <i class="fas fa-comments"></i>
+                        </span>
+                        <span class="flex-1">Communications</span>
+                    </a>
+                    <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                        <span class="w-6 flex justify-center">
+                            <i class="fas fa-chart-bar"></i>
+                        </span>
+                        <span class="flex-1">Reports & Analytics</span>
+                    </a>
+                    <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                        <span class="w-6 flex justify-center">
+                            <i class="fas fa-cog"></i>
+                        </span>
+                        <span class="flex-1">Settings</span>
+                    </a>
+                </div>
+                </nav>
+        </aside>
+
+        <!-- Mobile Sidebar -->
+        <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+            <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+            <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="academics.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-graduation-cap"></i>
+                            </span>
+                            <span class="flex-1">Academics</span>
+                        </a>
+                        <a href="users.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-users"></i>
+                            </span>
+                            <span class="flex-1">Users</span>
+                        </a>
+                        <a href="finance.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-line"></i>
+                            </span>
+                            <span class="font-medium flex-1">Finance</span>
+                        </a>
+                        <a href="campus-resources.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-building"></i>
+                            </span>
+                            <span class="flex-1">Campus Resources</span>
+                        </a>
+                        <a href="communications.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-comments"></i>
+                            </span>
+                            <span class="flex-1">Communications</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports & Analytics</span>
+                        </a>
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="flex-1">Settings</span>
+                        </a>
+                    </div>
+                </nav>
+            </aside>
+        </div>
+
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 flex flex-col w-full lg:pl-64">
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7 h-full flex flex-col">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-100 pb-3 no-print">
+                        <div class="flex items-center justify-center w-full lg:w-auto lg:justify-start gap-3">
+                            <button type="button" @click="sidebarOpen = true" class="lg:hidden fixed top-4 left-4 z-50 h-9 w-9 rounded-xl bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="relative">
+                                <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-14 w-auto rounded-2xl lg:hidden">
+                                <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                            </div>
+                            <div class="hidden lg:block">
+                                <h1 class="text-2xl sm:text-3xl font-semibold text-slate-800">Financial Report Details</h1>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1 hidden sm:block">Comprehensive financial analysis and insights</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 no-print">
+                            <!-- Period Selector -->
+                            <select x-model="selectedPeriod" class="px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+
+                            <!-- Export Buttons -->
+                            <button @click="refreshData()" class="px-3 py-2 bg-blue-100 text-blue-500 rounded-xl text-sm font-medium hover:bg-blue-200 transition">
+                                <i class="fas fa-sync-alt mr-2"></i>Refresh
+                            </button>
+                            <button @click="exportReport()" class="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-200 transition">
+                                <i class="fas fa-print mr-2"></i>Print
+                            </button>
+                            <button @click="downloadPDF()" class="px-3 py-2 bg-orange-100 text-orange-500 rounded-xl text-sm font-medium hover:bg-orange-200 transition">
+                                <i class="fas fa-download mr-2"></i>Download PDF
+                            </button>
+                            <a href="home.html" class="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-200 transition">
+                                <i class="fas fa-arrow-left mr-2"></i>Back
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Print Header -->
+                    <div class="print-only text-center mb-8">
+                        <h1 class="text-2xl font-bold text-slate-800">Financial Report</h1>
+                        <p class="text-slate-600" x-text="`${monthNames[selectedMonth]} ${selectedYear}`"></p>
+                        <p class="text-slate-500 text-sm">Generated on <span x-text="currentDate.toLocaleDateString()"></span></p>
+                    </div>
+
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 lg:gap-6 mt-6">
+                        <div class="rounded-2xl bg-gradient-to-tr from-emerald-400 to-emerald-500 text-white p-5 flex items-center justify-between shadow-md">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-emerald-100/90">Total Income</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none" x-text="`ZMW ${getTotalIncome().toLocaleString()}`"></div>
+                                <div class="mt-1 text-xs text-emerald-100/80">Current period</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-arrow-trend-up text-xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-2xl bg-gradient-to-tr from-red-400 to-rose-500 text-white p-5 flex items-center justify-between shadow-md">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-red-100/90">Total Expenses</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none" x-text="`ZMW ${getTotalExpenses().toLocaleString()}`"></div>
+                                <div class="mt-1 text-xs text-red-100/80">Current period</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-arrow-trend-down text-xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-2xl bg-gradient-to-tr from-blue-400 to-indigo-500 text-white p-5 flex items-center justify-between shadow-md">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-blue-100/90">Net Profit</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none" x-text="`ZMW ${getNetProfit().toLocaleString()}`"></div>
+                                <div class="mt-1 text-xs text-blue-100/80">Current period</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-chart-line text-xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-2xl bg-gradient-to-tr from-purple-400 to-pink-500 text-white p-5 flex items-center justify-between shadow-md">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-purple-100/90">Profit Margin</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none" x-text="`${getProfitMargin()}%`"></div>
+                                <div class="mt-1 text-xs text-purple-100/80">Current period</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-percentage text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts and Details -->
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+                        <!-- Trend Chart -->
+                        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-semibold text-slate-800">Income vs Expenses Trend</h3>
+                                <span class="text-xs text-slate-500">Last 6 months</span>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Income Breakdown -->
+                        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                            <h3 class="text-sm font-semibold text-slate-800 mb-4">Income Breakdown</h3>
+                            <div class="space-y-3">
+                                <template x-if="incomeData.length === 0">
+                                    <div class="text-center py-8">
+                                        <i class="fas fa-chart-pie text-3xl text-slate-300 mb-3"></i>
+                                        <p class="text-sm text-slate-500">No income data available</p>
+                                        <p class="text-xs text-slate-400 mt-1">Income data will appear here once loaded from finance pages</p>
+                                    </div>
+                                </template>
+                                <template x-for="item in incomeData" :key="item.category">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                            <span class="text-sm text-slate-700" x-text="item.category"></span>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-sm font-medium text-slate-800" x-text="`ZMW ${item.amount.toLocaleString()}`"></span>
+                                            <span class="text-xs text-slate-500" x-text="`${item.percentage}%`"></span>
+                                        </div>
+                                    </div>
+                                    <div class="w-full bg-slate-200 rounded-full h-2">
+                                        <div class="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full transition-all duration-1000 ease-out" 
+                                             :style="`width: ${item.percentage}%`"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Expense Breakdown -->
+                        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                            <h3 class="text-sm font-semibold text-slate-800 mb-4">Expense Breakdown</h3>
+                            <div class="space-y-3">
+                                <template x-if="expenseData.length === 0">
+                                    <div class="text-center py-8">
+                                        <i class="fas fa-chart-pie text-3xl text-slate-300 mb-3"></i>
+                                        <p class="text-sm text-slate-500">No expense data available</p>
+                                        <p class="text-xs text-slate-400 mt-1">Expense data will appear here once loaded from finance pages</p>
+                                    </div>
+                                </template>
+                                <template x-for="item in expenseData" :key="item.category">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                                            <span class="text-sm text-slate-700" x-text="item.category"></span>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-sm font-medium text-slate-800" x-text="`ZMW ${item.amount.toLocaleString()}`"></span>
+                                            <span class="text-xs text-slate-500" x-text="`${item.percentage}%`"></span>
+                                        </div>
+                                    </div>
+                                    <div class="w-full bg-slate-200 rounded-full h-2">
+                                        <div class="h-full bg-gradient-to-r from-red-400 to-red-500 rounded-full transition-all duration-1000 ease-out" 
+                                             :style="`width: ${item.percentage}%`"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Key Insights -->
+                        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                            <h3 class="text-sm font-semibold text-slate-800 mb-4">Key Insights</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3">
+                                    <div class="h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <i class="fas fa-arrow-up text-emerald-600 text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-slate-800">Revenue Growth</div>
+                                        <div class="text-xs text-slate-500">Income increased by 15% compared to last month</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <div class="h-6 w-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <i class="fas fa-exclamation text-amber-600 text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-slate-800">Expense Management</div>
+                                        <div class="text-xs text-slate-500">Operating costs are within budget but need monitoring</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <div class="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <i class="fas fa-chart-line text-blue-600 text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-slate-800">Profit Margin</div>
+                                        <div class="text-xs text-slate-500">Current profit margin of <span x-text="`${getProfitMargin()}%`"></span> is healthy for the industry</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Transactions Table -->
+                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mt-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-semibold text-slate-800">Recent Transactions</h3>
+                            <button class="text-xs text-orange-500 hover:text-orange-600 font-medium">View All</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-slate-100">
+                                        <th class="text-left py-3 px-4 font-medium text-slate-600">Date</th>
+                                        <th class="text-left py-3 px-4 font-medium text-slate-600">Description</th>
+                                        <th class="text-left py-3 px-4 font-medium text-slate-600">Category</th>
+                                        <th class="text-right py-3 px-4 font-medium text-slate-600">Amount</th>
+                                        <th class="text-center py-3 px-4 font-medium text-slate-600">Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-if="recentTransactions.length === 0">
+                                        <tr>
+                                            <td colspan="5" class="py-8 text-center text-slate-500">
+                                                <div class="flex flex-col items-center">
+                                                    <i class="fas fa-receipt text-3xl text-slate-300 mb-3"></i>
+                                                    <p class="text-sm">No transactions available</p>
+                                                    <p class="text-xs text-slate-400 mt-1">Transactions will appear here once data is loaded from finance pages</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <template x-for="transaction in recentTransactions.slice(0, 5)" :key="transaction.id">
+                                        <tr class="border-b border-slate-50">
+                                            <td class="py-3 px-4 text-slate-700" x-text="transaction.date || '-'"></td>
+                                            <td class="py-3 px-4 text-slate-700" x-text="transaction.description || '-'"></td>
+                                            <td class="py-3 px-4 text-slate-700" x-text="transaction.category || '-'"></td>
+                                            <td class="py-3 px-4 text-right font-medium" 
+                                                :class="transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'"
+                                                x-text="`${transaction.type === 'income' ? '+' : '-'}ZMW ${(transaction.amount || 0).toLocaleString()}`"></td>
+                                            <td class="py-3 px-4 text-center">
+                                                <span class="px-2 py-1 rounded-full text-xs"
+                                                    :class="transaction.type === 'income' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'"
+                                                    x-text="transaction.type || '-'"></span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentDate = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            console.log('Financial Report Details page loaded on:', currentDate.toLocaleDateString('en-US', options));
+        });
+
+        // Alpine.js enhancements for Financial Report Details
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('financialReportApp', () => ({
+                // Enhanced functionality for saving report preferences
+                reportPreferences: {
+                    defaultPeriod: 'monthly',
+                    defaultChartType: 'bar',
+                    autoRefresh: false,
+                    refreshInterval: 5
+                },
+
+                init() {
+                    this.loadReportPreferences();
+                },
+
+                async loadReportPreferences() {
+                    try {
+                        const response = await window.sharedApiClient.request('/reports/preferences');
+                        if (response.ok) {
+                            this.reportPreferences = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Error loading report preferences:', error);
+                    }
+                },
+
+                async saveReportPreferences() {
+                    try {
+                        const result = await window.tenantAdminSave.saveSettings(this.reportPreferences);
+                        
+                        if (result.success) {
+                            window.tenantAdminSave.showSuccess('Report preferences saved successfully!');
+                        }
+                    } catch (error) {
+                        console.error('Error saving report preferences:', error);
+                    }
+                },
+
+                async downloadPDF() {
+                    try {
+                        // Generate PDF report data
+                        const reportData = {
+                            period: this.selectedPeriod,
+                            year: this.selectedYear,
+                            month: this.selectedMonth,
+                            totalIncome: this.getTotalIncome(),
+                            totalExpenses: this.getTotalExpenses(),
+                            netProfit: this.getNetProfit(),
+                            profitMargin: this.getProfitMargin(),
+                            generatedDate: new Date().toISOString()
+                        };
+
+                        const result = await window.tenantAdminSave.saveData('/reports/generate-pdf', {
+                            ...reportData,
+                            format: 'pdf'
+                        }, {
+                            successMessage: 'PDF report generated successfully!',
+                            errorMessage: 'Failed to generate PDF report'
+                        });
+
+                        if (result.success && result.data.downloadUrl) {
+                            // Trigger download
+                            const link = document.createElement('a');
+                            link.href = result.data.downloadUrl;
+                            link.download = `financial-report-${this.selectedYear}-${this.selectedMonth}.pdf`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
+                    } catch (error) {
+                        console.error('Error downloading PDF:', error);
+                    }
+                },
+
+                async exportToExcel() {
+                    try {
+                        const reportData = {
+                            period: this.selectedPeriod,
+                            year: this.selectedYear,
+                            month: this.selectedMonth,
+                            transactions: this.transactions || [],
+                            summary: {
+                                totalIncome: this.getTotalIncome(),
+                                totalExpenses: this.getTotalExpenses(),
+                                netProfit: this.getNetProfit(),
+                                profitMargin: this.getProfitMargin()
+                            }
+                        };
+
+                        const result = await window.tenantAdminSave.saveData('/reports/export-excel', reportData, {
+                            successMessage: 'Excel report exported successfully!',
+                            errorMessage: 'Failed to export Excel report'
+                        });
+
+                        if (result.success && result.data.downloadUrl) {
+                            // Trigger download
+                            const link = document.createElement('a');
+                            link.href = result.data.downloadUrl;
+                            link.download = `financial-report-${this.selectedYear}-${this.selectedMonth}.xlsx`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
+                    } catch (error) {
+                        console.error('Error exporting to Excel:', error);
+                    }
+                },
+
+                async shareReport() {
+                    try {
+                        const reportData = {
+                            period: this.selectedPeriod,
+                            year: this.selectedYear,
+                            month: this.selectedMonth,
+                            shareableLink: true,
+                            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+                        };
+
+                        const result = await window.tenantAdminSave.saveData('/reports/share', reportData, {
+                            successMessage: 'Report shared successfully!',
+                            errorMessage: 'Failed to share report'
+                        });
+
+                        if (result.success && result.data.shareUrl) {
+                            // Copy to clipboard
+                            navigator.clipboard.writeText(result.data.shareUrl).then(() => {
+                                window.tenantAdminSave.showSuccess('Share link copied to clipboard!');
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error sharing report:', error);
+                    }
+                }
+            }));
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Operations Admin Dashboard</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/rbac-system.js"></script>
+    <script src="/shared-assets/js/portal-security.js"></script>
+    <script src="/shared-assets/js/data-manager.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+    <style>
+        /* Font family setup */
+        body {
+            font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Consistent font sizes */
+        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-sm { font-size: 0.825rem !important; line-height: 1.125rem !important; }
+        .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .text-lg { font-size: 0.925rem !important; line-height: 1.375rem !important; }
+        .text-xl { font-size: 0.975rem !important; line-height: 1.5rem !important; }
+        .text-2xl { font-size: 1.025rem !important; line-height: 1.625rem !important; }
+        .text-3xl { font-size: 1.075rem !important; line-height: 1.75rem !important; }
+
+        /* Override any larger font sizes */
+        .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+
+        /* Custom scrollbar to match app theme */
+        body, body * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        body::-webkit-scrollbar,
+        body *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        body::-webkit-scrollbar-track,
+        body *::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        body::-webkit-scrollbar-thumb,
+        body *::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #f97316, #ea580c);
+            border-radius: 9999px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover,
+        body *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ea580c, #c2410c);
+        }
+
+        /* Custom animations */
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Ensure consistent small text throughout */
+        h1 { font-size: 1.25rem !important; }
+        h2 { font-size: 1.125rem !important; }
+        h3 { font-size: 1rem !important; }
+        h4 { font-size: 0.925rem !important; }
+        h5 { font-size: 0.875rem !important; }
+        h6 { font-size: 0.825rem !important; }
+        
+        /* Input and button text sizes */
+        input, button, select, textarea {
+            font-size: 0.825rem !important;
+        }
+
+        /* Badge and label text */
+        .badge, .label {
+            font-size: 0.7rem !important;
+        }
+
+        /* Tab styles */
+        .tab-button {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to right, #f97316, #ea580c);
+            border-radius: 2px 2px 0 0;
+        }
+
+        /* Status badge styles */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .status-active {
+            background: linear-gradient(to right, #10b981, #059669);
+            color: white;
+        }
+
+        .status-expired {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .status-pending {
+            background: linear-gradient(to right, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .status-trial {
+            background: linear-gradient(to right, #6366f1, #4f46e5);
+            color: white;
+        }
+
+        /* Chart styles */
+        .chart-container {
+            position: relative;
+            height: 200px;
+        }
+
+        .revenue-bar {
+            transition: all 0.3s ease;
+        }
+
+        .revenue-bar:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        mobileSearchOpen: false,
+        mobileNotificationsOpen: false,
+        mobileProfileOpen: false,
+        mobileSearchQuery: '',
+        pageTitle: 'Operations Admin Dashboard',
+        pageSubtitle: 'Manage subscriptions, customer care, and operations',
+        activeTab: 'subscriptions',
+        notifications: [],
+        
+        // Subscription Management data
+        subscriptions: [],
+        showAddSubscription: false,
+        newSubscriptionTenant: '',
+        newSubscriptionPlan: '',
+        newSubscriptionStatus: '',
+        newSubscriptionBillingCycle: '',
+        
+        // Customer Care data
+        supportTickets: [],
+        showAddTicket: false,
+        newTicketCustomer: '',
+        newTicketSubject: '',
+        newTicketPriority: '',
+        newTicketCategory: '',
+        
+        // Billing data
+        invoices: [],
+        showAddInvoice: false,
+        newInvoiceTenant: '',
+        newInvoiceAmount: '',
+        newInvoiceDueDate: '',
+        newInvoiceStatus: '',
+        
+        // Analytics data
+        revenueData: [],
+        subscriptionMetrics: {},
+        
+        // Common methods
+        init() {
+            this.loadSharedNotifications();
+            this.loadSampleData();
+            
+            // Sync with shared notifications every 10 seconds
+            setInterval(() => {
+                this.loadSharedNotifications();
+            }, 10000);
+            
+            // Listen for shared notification updates
+            window.addEventListener('message', (e) => {
+                if (e.data.type === 'NOTIFICATION_UPDATE' || e.data.type === 'NOTIFICATION_SYNC') {
+                    this.loadSharedNotifications();
+                }
+            });
+        },
+        
+        loadSharedNotifications() {
+            if (window.sharedMessages) {
+                this.notifications = window.sharedMessages.getNotifications().slice(0, 20);
+            }
+        },
+        
+        loadSampleData() {
+            // Initialize empty arrays - no mock data
+        },
+        
+        // Tab management
+        switchTab(tab) {
+            console.log('Switching to tab:', tab);
+            this.activeTab = tab;
+        },
+        
+        // Subscription methods
+        addSubscription() {
+            console.log('Adding subscription:', this.newSubscriptionTenant);
+            if (this.newSubscriptionTenant && this.newSubscriptionPlan && this.newSubscriptionStatus && this.newSubscriptionBillingCycle) {
+                this.subscriptions.unshift({
+                    id: Date.now(),
+                    tenant: this.newSubscriptionTenant,
+                    plan: this.newSubscriptionPlan,
+                    status: this.newSubscriptionStatus,
+                    billingCycle: this.newSubscriptionBillingCycle,
+                    startDate: new Date().toISOString().split('T')[0],
+                    nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    monthlyRevenue: this.calculateMonthlyRevenue(this.newSubscriptionPlan)
+                });
+                this.newSubscriptionTenant = '';
+                this.newSubscriptionPlan = '';
+                this.newSubscriptionStatus = '';
+                this.newSubscriptionBillingCycle = '';
+                this.showAddSubscription = false;
+                console.log('Subscription added successfully');
+            }
+        },
+        
+        calculateMonthlyRevenue(plan) {
+            const plans = {
+                'Basic': 299,
+                'Professional': 599,
+                'Enterprise': 1299,
+                'Custom': 0
+            };
+            return plans[plan] || 0;
+        },
+        
+        deleteSubscription(id) {
+            console.log('Deleting subscription:', id);
+            this.subscriptions = this.subscriptions.filter(s => s.id !== id);
+        },
+        
+        // Support ticket methods
+        addTicket() {
+            console.log('Adding support ticket');
+            if (this.newTicketCustomer && this.newTicketSubject && this.newTicketPriority && this.newTicketCategory) {
+                this.supportTickets.unshift({
+                    id: Date.now(),
+                    customer: this.newTicketCustomer,
+                    subject: this.newTicketSubject,
+                    priority: this.newTicketPriority,
+                    category: this.newTicketCategory,
+                    status: 'Open',
+                    createdDate: new Date().toISOString().split('T')[0],
+                    ticketNumber: 'TK-' + Date.now()
+                });
+                this.newTicketCustomer = '';
+                this.newTicketSubject = '';
+                this.newTicketPriority = '';
+                this.newTicketCategory = '';
+                this.showAddTicket = false;
+                console.log('Support ticket added successfully');
+            }
+        },
+        
+        deleteTicket(id) {
+            console.log('Deleting ticket:', id);
+            this.supportTickets = this.supportTickets.filter(t => t.id !== id);
+        },
+        
+        // Invoice methods
+        addInvoice() {
+            console.log('Adding invoice');
+            if (this.newInvoiceTenant && this.newInvoiceAmount && this.newInvoiceDueDate && this.newInvoiceStatus) {
+                this.invoices.unshift({
+                    id: Date.now(),
+                    tenant: this.newInvoiceTenant,
+                    amount: parseFloat(this.newInvoiceAmount),
+                    dueDate: this.newInvoiceDueDate,
+                    status: this.newInvoiceStatus,
+                    invoiceDate: new Date().toISOString().split('T')[0],
+                    invoiceNumber: 'INV-' + Date.now()
+                });
+                this.newInvoiceTenant = '';
+                this.newInvoiceAmount = '';
+                this.newInvoiceDueDate = '';
+                this.newInvoiceStatus = '';
+                this.showAddInvoice = false;
+                console.log('Invoice added successfully');
+            }
+        },
+        
+        deleteInvoice(id) {
+            console.log('Deleting invoice:', id);
+            this.invoices = this.invoices.filter(i => i.id !== id);
+        },
+        
+        unreadCount() {
+            return this.notifications.filter(n => !n.read).length;
+        },
+        
+        // Analytics methods
+        getTotalRevenue() {
+            return this.subscriptions.reduce((total, sub) => total + sub.monthlyRevenue, 0);
+        },
+        
+        getActiveSubscriptions() {
+            return this.subscriptions.filter(s => s.status === 'Active').length;
+        },
+        
+        getOpenTickets() {
+            return this.supportTickets.filter(t => t.status === 'Open').length;
+        },
+        
+        getOverdueInvoices() {
+            const today = new Date().toISOString().split('T')[0];
+            return this.invoices.filter(i => i.status === 'Overdue' || (i.dueDate < today && i.status !== 'Paid')).length;
+        }
+    }" x-init="init()" class="min-h-screen flex">
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="font-medium flex-1">Home</span>
+                        </a>
+                        <a href="subscriptions.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-credit-card"></i>
+                            </span>
+                            <span class="flex-1">Subscriptions</span>
+                        </a>
+                        <a href="customer-care.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-headset"></i>
+                            </span>
+                            <span class="flex-1">Customer Care</span>
+                        </a>
+                        <a href="billing.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </span>
+                            <span class="flex-1">Billing & Invoices</span>
+                        </a>
+                        <a href="analytics.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-line"></i>
+                            </span>
+                            <span class="flex-1">Analytics</span>
+                        </a>
+                        <a href="system-health.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-heartbeat"></i>
+                            </span>
+                            <span class="flex-1">System Health</span>
+                        </a>
+                        <a href="audit-logs.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-history"></i>
+                            </span>
+                            <span class="flex-1">Audit Logs</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-file-alt"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="flex-1">Settings</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Operations Stats -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">System Status</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Uptime</span>
+                                <span class="font-medium">99.9%</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Active Services</span>
+                                <span class="font-medium">12/12</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Response Time</span>
+                                <span class="font-medium">45ms</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" title="Close sidebar" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                    <nav class="nav-menu space-y-1 text-sm">
+                        <div class="pt-4">
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-home"></i>
+                                </span>
+                                <span class="font-medium flex-1">Home</span>
+                            </a>
+                            <a href="subscriptions.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-credit-card"></i>
+                                </span>
+                                <span class="flex-1">Subscriptions</span>
+                            </a>
+                            <a href="customer-care.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-headset"></i>
+                                </span>
+                                <span class="flex-1">Customer Care</span>
+                            </a>
+                            <a href="billing.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                </span>
+                                <span class="flex-1">Billing & Invoices</span>
+                            </a>
+                            <a href="analytics.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-chart-line"></i>
+                                </span>
+                                <span class="flex-1">Analytics</span>
+                            </a>
+                            <a href="system-health.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-heartbeat"></i>
+                                </span>
+                                <span class="flex-1">System Health</span>
+                            </a>
+                            <a href="audit-logs.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-history"></i>
+                                </span>
+                                <span class="flex-1">Audit Logs</span>
+                            </a>
+                            <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-file-alt"></i>
+                                </span>
+                                <span class="flex-1">Reports</span>
+                            </a>
+                            <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-cog"></i>
+                                </span>
+                                <span class="flex-1">Settings</span>
+                            </a>
+                        </div>
+                    </nav>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7 h-full flex flex-col">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-100 pb-3">
+                        <div class="flex items-center justify-center w-full lg:w-auto lg:justify-start gap-3">
+                            <button type="button" @click="sidebarOpen = true" title="Open sidebar" class="lg:hidden fixed top-4 left-4 z-50 h-9 w-9 rounded-xl bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="relative">
+                                <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-14 w-auto rounded-2xl lg:hidden">
+                                <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                            </div>
+                            <div class="hidden lg:block">
+                                <h1 class="text-2xl sm:text-3xl font-semibold text-slate-800">Operations Admin Dashboard</h1>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1 hidden sm:block">Manage subscriptions, customer care, and operations</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hidden sm:flex items-center gap-3">
+                            <!-- Search Bar -->
+                            <div class="relative hidden sm:flex items-center bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 w-64">
+                                <i class="fas fa-search text-slate-400 text-sm mr-2"></i>
+                                <input type="text" placeholder="Search subscriptions, tickets..." class="bg-transparent text-sm text-slate-600 placeholder-slate-400 focus:outline-none flex-1">
+                            </div>
+
+                            <!-- Notifications -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" title="Notifications" class="relative h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                                    <i class="fas fa-bell"></i>
+                                    <span x-show="unreadCount() > 0" x-text="unreadCount()" class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"></span>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                        <h3 class="font-semibold text-slate-800">Notifications</h3>
+                                        <div class="flex gap-2">
+                                            <button @click="notifications.forEach(n => n.read = true)" title="Mark all notifications as read" class="text-xs text-orange-500 hover:text-orange-600 font-medium">Read All</button>
+                                            <button @click="notifications = []" title="Clear all notifications" class="text-xs text-red-500 hover:text-red-600 font-medium">Clear</button>
+                                        </div>
+                                    </div>
+                                    <div class="max-h-96 overflow-y-auto">
+                                        <template x-if="notifications.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-bell text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No notifications yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">You're all caught up!</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="notification in notifications" :key="notification.id">
+                                            <div class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition cursor-pointer">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="h-2 w-2 rounded-full mt-2" :class="notification.read ? 'bg-slate-300' : 'bg-orange-500'"></div>
+                                                    <div class="flex-1">
+                                                        <div class="font-medium text-slate-800 text-sm" x-text="notification.title"></div>
+                                                        <div class="text-slate-500 text-xs mt-1" x-text="notification.message"></div>
+                                                        <div class="text-slate-400 text-xs mt-1" x-text="notification.time"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Profile -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition">
+                                    <div class="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white">
+                                        <i class="fas fa-cogs text-sm"></i>
+                                    </div>
+                                    <div class="hidden sm:block text-left">
+                                        <div class="font-medium text-slate-800 text-sm">Operations Admin</div>
+                                        <div class="text-slate-500 text-xs">System Operations</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                                        <i class="fas fa-user text-slate-400"></i>
+                                        <span class="text-sm text-slate-700">Profile</span>
+                                    </a>
+                                    <button class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-500 transition">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span class="text-sm">Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 lg:gap-6 mt-6 quick-stats">
+                        <div class="rounded-2xl bg-gradient-to-tr from-orange-400 to-orange-500 text-white p-5 flex items-center justify-between shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-orange-100/90">Total Revenue</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none" x-text="'ZMW ' + getTotalRevenue().toLocaleString()"></div>
+                                <div class="mt-1 text-xs text-orange-100/80">Monthly recurring</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-dollar-sign text-xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-2xl bg-gradient-to-tr from-indigo-400 to-purple-500 text-white p-5 flex items-center justify-between shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-indigo-100/90">Active Subscriptions</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none" x-text="getActiveSubscriptions()"></div>
+                                <div class="mt-1 text-xs text-indigo-100/80">Currently active</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-credit-card text-xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-2xl bg-gradient-to-tr from-emerald-400 to-teal-500 text-white p-5 flex items-center justify-between shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-emerald-100/90">Open Tickets</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none" x-text="getOpenTickets()"></div>
+                                <div class="mt-1 text-xs text-emerald-100/80">Need attention</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-headset text-xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white p-5 flex items-center justify-between shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-amber-100/90">Overdue Invoices</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none" x-text="getOverdueInvoices()"></div>
+                                <div class="mt-1 text-xs text-amber-100/80">Need follow-up</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-exclamation-triangle text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs Navigation -->
+                    <div class="flex border-b border-slate-200 mt-6">
+                        <button @click="switchTab('subscriptions')" 
+                                :class="activeTab === 'subscriptions' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium tab-button">
+                            <i class="fas fa-credit-card mr-2"></i>
+                            Subscription Management
+                        </button>
+                        <button @click="switchTab('customer-care')" 
+                                :class="activeTab === 'customer-care' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium tab-button">
+                            <i class="fas fa-headset mr-2"></i>
+                            Customer Care
+                        </button>
+                        <button @click="switchTab('billing')" 
+                                :class="activeTab === 'billing' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium tab-button">
+                            <i class="fas fa-file-invoice-dollar mr-2"></i>
+                            Billing & Invoices
+                        </button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="flex-1 overflow-y-auto mt-6">
+                        <!-- Subscriptions Tab -->
+                        <div x-show="activeTab === 'subscriptions'" x-cloak class="space-y-6">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold text-slate-800">Subscription Management</h2>
+                                <button @click="showAddSubscription = true" class="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Add Subscription
+                                </button>
+                            </div>
+
+                            <!-- Add Subscription Modal -->
+                            <div x-show="showAddSubscription" x-cloak class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+                                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Add New Subscription</h3>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Tenant Name</label>
+                                            <input type="text" x-model="newSubscriptionTenant" title="Tenant Name" placeholder="Enter tenant name" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Plan</label>
+                                            <select x-model="newSubscriptionPlan" title="Subscription Plan" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                <option value="">Select Plan</option>
+                                                <option value="Basic">Basic - ZMW 299/month</option>
+                                                <option value="Professional">Professional - ZMW 599/month</option>
+                                                <option value="Enterprise">Enterprise - ZMW 1299/month</option>
+                                                <option value="Custom">Custom</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                                            <select x-model="newSubscriptionStatus" title="Subscription Status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                <option value="">Select Status</option>
+                                                <option value="Active">Active</option>
+                                                <option value="Trial">Trial</option>
+                                                <option value="Expired">Expired</option>
+                                                <option value="Suspended">Suspended</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Billing Cycle</label>
+                                            <select x-model="newSubscriptionBillingCycle" title="Billing Cycle" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                <option value="">Select Cycle</option>
+                                                <option value="Monthly">Monthly</option>
+                                                <option value="Quarterly">Quarterly</option>
+                                                <option value="Annually">Annually</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3 mt-6">
+                                        <button @click="addSubscription()" class="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                                            Add Subscription
+                                        </button>
+                                        <button @click="showAddSubscription = false" class="flex-1 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-300 transition">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Subscriptions Table -->
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-slate-50 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tenant</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Plan</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Billing</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Revenue</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-slate-200">
+                                            <template x-for="subscription in subscriptions" :key="subscription.id">
+                                                <tr class="hover:bg-slate-50 transition">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900" x-text="subscription.tenant"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="subscription.plan"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="status-badge" :class="'status-' + subscription.status.toLowerCase()" x-text="subscription.status"></span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="subscription.billingCycle"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900" x-text="'ZMW ' + subscription.monthlyRevenue.toLocaleString()"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                        <button @click="deleteSubscription(subscription.id)" class="text-red-500 hover:text-red-700 transition">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <template x-if="subscriptions.length === 0">
+                                                <tr>
+                                                    <td colspan="6" class="px-6 py-12 text-center">
+                                                        <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                            <i class="fas fa-credit-card text-slate-400"></i>
+                                                        </div>
+                                                        <div class="text-sm text-slate-500">No subscriptions yet</div>
+                                                        <div class="text-xs text-slate-400 mt-1">Add your first subscription to get started</div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Customer Care Tab -->
+                        <div x-show="activeTab === 'customer-care'" x-cloak class="space-y-6">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold text-slate-800">Customer Support Tickets</h2>
+                                <button @click="showAddTicket = true" class="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    New Ticket
+                                </button>
+                            </div>
+
+                            <!-- Add Ticket Modal -->
+                            <div x-show="showAddTicket" x-cloak class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+                                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Create Support Ticket</h3>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Customer</label>
+                                            <input type="text" x-model="newTicketCustomer" title="Customer Name" placeholder="Enter customer name" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Subject</label>
+                                            <input type="text" x-model="newTicketSubject" title="Ticket Subject" placeholder="Enter ticket subject" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Priority</label>
+                                            <select x-model="newTicketPriority" title="Ticket Priority" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                <option value="">Select Priority</option>
+                                                <option value="Low">Low</option>
+                                                <option value="Medium">Medium</option>
+                                                <option value="High">High</option>
+                                                <option value="Critical">Critical</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Category</label>
+                                            <select x-model="newTicketCategory" title="Ticket Category" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                <option value="">Select Category</option>
+                                                <option value="Technical">Technical</option>
+                                                <option value="Billing">Billing</option>
+                                                <option value="Account">Account</option>
+                                                <option value="Feature Request">Feature Request</option>
+                                                <option value="Bug Report">Bug Report</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3 mt-6">
+                                        <button @click="addTicket()" class="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                                            Create Ticket
+                                        </button>
+                                        <button @click="showAddTicket = false" class="flex-1 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-300 transition">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tickets Table -->
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-slate-50 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ticket #</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Customer</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Subject</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Priority</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Category</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-slate-200">
+                                            <template x-for="ticket in supportTickets" :key="ticket.id">
+                                                <tr class="hover:bg-slate-50 transition">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900" x-text="ticket.ticketNumber"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="ticket.customer"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="ticket.subject"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="status-badge" :class="'status-' + ticket.priority.toLowerCase()" x-text="ticket.priority"></span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="ticket.category"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="status-badge" :class="'status-' + ticket.status.toLowerCase()" x-text="ticket.status"></span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                        <button @click="deleteTicket(ticket.id)" class="text-red-500 hover:text-red-700 transition">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <template x-if="supportTickets.length === 0">
+                                                <tr>
+                                                    <td colspan="7" class="px-6 py-12 text-center">
+                                                        <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                            <i class="fas fa-headset text-slate-400"></i>
+                                                        </div>
+                                                        <div class="text-sm text-slate-500">No support tickets yet</div>
+                                                        <div class="text-xs text-slate-400 mt-1">Create your first ticket to get started</div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Billing Tab -->
+                        <div x-show="activeTab === 'billing'" x-cloak class="space-y-6">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold text-slate-800">Billing & Invoices</h2>
+                                <button @click="showAddInvoice = true" class="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    New Invoice
+                                </button>
+                            </div>
+
+                            <!-- Add Invoice Modal -->
+                            <div x-show="showAddInvoice" x-cloak class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+                                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Create Invoice</h3>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Tenant</label>
+                                            <input type="text" x-model="newInvoiceTenant" title="Tenant Name" placeholder="Enter tenant name" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Amount (ZMW)</label>
+                                            <input type="number" x-model="newInvoiceAmount" title="Invoice Amount" placeholder="Enter amount" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
+                                            <input type="date" x-model="newInvoiceDueDate" title="Invoice Due Date" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                                            <select x-model="newInvoiceStatus" title="Invoice Status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                <option value="">Select Status</option>
+                                                <option value="Paid">Paid</option>
+                                                <option value="Unpaid">Unpaid</option>
+                                                <option value="Overdue">Overdue</option>
+                                                <option value="Cancelled">Cancelled</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3 mt-6">
+                                        <button @click="addInvoice()" class="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                                            Create Invoice
+                                        </button>
+                                        <button @click="showAddInvoice = false" class="flex-1 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-300 transition">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Invoices Table -->
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-slate-50 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Invoice #</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tenant</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Amount</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Due Date</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-slate-200">
+                                            <template x-for="invoice in invoices" :key="invoice.id">
+                                                <tr class="hover:bg-slate-50 transition">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900" x-text="invoice.invoiceNumber"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="invoice.tenant"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900" x-text="'ZMW ' + invoice.amount.toLocaleString()"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="invoice.dueDate"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="status-badge" :class="'status-' + invoice.status.toLowerCase()" x-text="invoice.status"></span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                        <button @click="deleteInvoice(invoice.id)" class="text-red-500 hover:text-red-700 transition">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <template x-if="invoices.length === 0">
+                                                <tr>
+                                                    <td colspan="6" class="px-6 py-12 text-center">
+                                                        <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                            <i class="fas fa-file-invoice-dollar text-slate-400"></i>
+                                                        </div>
+                                                        <div class="text-sm text-slate-500">No invoices yet</div>
+                                                        <div class="text-xs text-slate-400 mt-1">Create your first invoice to get started</div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

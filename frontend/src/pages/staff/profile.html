@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Staff Profile</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+    <style>
+        /* Font family setup */
+        body {
+            font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Consistent font sizes */
+        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-sm { font-size: 0.825rem !important; line-height: 1.125rem !important; }
+        .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .text-lg { font-size: 0.925rem !important; line-height: 1.375rem !important; }
+        .text-xl { font-size: 0.975rem !important; line-height: 1.5rem !important; }
+        .text-2xl { font-size: 1.025rem !important; line-height: 1.625rem !important; }
+        .text-3xl { font-size: 1.075rem !important; line-height: 1.75rem !important; }
+
+        /* Override any larger font sizes */
+        .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+
+        /* Custom scrollbar to match app theme */
+        body, body * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        body::-webkit-scrollbar,
+        body *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        body::-webkit-scrollbar-track,
+        body *::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        body::-webkit-scrollbar-thumb,
+        body *::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #f97316, #ea580c);
+            border-radius: 9999px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover,
+        body *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ea580c, #c2410c);
+        }
+
+        /* Custom animations */
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Ensure consistent small text throughout */
+        h1 { font-size: 1.25rem !important; }
+        h2 { font-size: 1.125rem !important; }
+        h3 { font-size: 1rem !important; }
+        h4 { font-size: 0.925rem !important; }
+        h5 { font-size: 0.875rem !important; }
+        h6 { font-size: 0.825rem !important; }
+        
+        /* Input and button text sizes */
+        input, button, select, textarea {
+            font-size: 0.825rem !important;
+        }
+
+        /* Badge and label text */
+        .badge, .label {
+            font-size: 0.7rem !important;
+        }
+
+        /* Profile picture styles */
+        .profile-picture {
+            transition: all 0.3s ease;
+        }
+
+        .profile-picture:hover {
+            transform: scale(1.05);
+        }
+
+        /* Tab styles */
+        .tab-button {
+            position: relative;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to right, #f97316, #ea580c);
+            border-radius: 2px 2px 0 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        mobileSearchOpen: false,
+        mobileNotificationsOpen: false,
+        mobileProfileOpen: false,
+        mobileSearchQuery: '',
+        pageTitle: 'Staff Profile',
+        pageSubtitle: 'Manage your personal information and settings',
+        activeTab: 'personal',
+        notifications: [],
+        
+        // Profile data
+        profile: {
+            firstName: 'John',
+            lastName: 'Smith',
+            email: 'john.smith@shikola.edu',
+            phone: '+1 234 567 8900',
+            department: 'Computer Science',
+            position: 'Senior Lecturer',
+            employeeId: 'STF-2024-001',
+            joinDate: '2020-08-15',
+            office: 'Room 302, Building A',
+            bio: 'Passionate educator with over 10 years of experience in computer science education.',
+            expertise: ['Machine Learning', 'Data Structures', 'Web Development', 'Database Systems'],
+            education: [
+                { degree: 'Ph.D. in Computer Science', institution: 'Stanford University', year: '2014' },
+                { degree: 'M.S. in Computer Science', institution: 'MIT', year: '2010' },
+                { degree: 'B.S. in Computer Science', institution: 'UC Berkeley', year: '2008' }
+            ],
+            publications: [
+                { title: 'Advanced Machine Learning Algorithms', journal: 'IEEE Transactions', year: '2023' },
+                { title: 'Efficient Data Structures for Big Data', journal: 'ACM Computing', year: '2022' }
+            ]
+        },
+        
+        // Settings data
+        settings: {
+            emailNotifications: true,
+            pushNotifications: false,
+            smsAlerts: true,
+            weeklyDigest: true,
+            twoFactorAuth: false,
+            privacyMode: false,
+            language: 'en',
+            timezone: 'America/New_York',
+            theme: 'light'
+        },
+        
+        // Form states
+        editingProfile: false,
+        editingSettings: false,
+        changingPassword: false,
+        
+        // Password change data
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+        
+        // Common methods
+        init() {
+            this.loadProfileData();
+        },
+        
+        loadProfileData() {
+            // Load profile data from API
+            console.log('Loading profile data...');
+        },
+        
+        // Tab management
+        switchTab(tab) {
+            console.log('Switching to tab:', tab);
+            this.activeTab = tab;
+        },
+        
+        // Profile methods
+        updateProfile() {
+            console.log('Updating profile...');
+            this.editingProfile = false;
+            // Show success message
+        },
+        
+        updateSettings() {
+            console.log('Updating settings...');
+            this.editingSettings = false;
+            // Show success message
+        },
+        
+        changePassword() {
+            console.log('Changing password...');
+            if (this.newPassword !== this.confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+            this.currentPassword = '';
+            this.newPassword = '';
+            this.confirmPassword = '';
+            this.changingPassword = false;
+            // Show success message
+        },
+        
+        uploadProfilePicture(event) {
+            const file = event.target.files[0];
+            if (file) {
+                console.log('Uploading profile picture:', file.name);
+                // Handle file upload
+            }
+        },
+        
+        unreadCount() {
+            return this.notifications.filter(n => !n.read).length;
+        }
+    }" x-init="init()" class="min-h-screen flex">
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+                <!-- Staff Profile Card -->
+                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-4 text-white mb-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                            <i class="fas fa-user-tie text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-sm" x-text="profile.firstName + ' ' + profile.lastName"></h4>
+                            <p class="text-xs opacity-90" x-text="profile.position"></p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <div>
+                            <div class="opacity-75">Department</div>
+                            <div class="font-medium" x-text="profile.department"></div>
+                        </div>
+                        <div>
+                            <div class="opacity-75">Staff ID</div>
+                            <div class="font-medium" x-text="profile.employeeId"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Dashboard</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <span class="font-medium flex-1">My Profile</span>
+                        </a>
+                        <a href="schedule.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                            <span class="flex-1">My Schedule</span>
+                        </a>
+                        <a href="courses.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-book"></i>
+                            </span>
+                            <span class="flex-1">My Courses</span>
+                        </a>
+                        <a href="students.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-users"></i>
+                            </span>
+                            <span class="flex-1">Students</span>
+                        </a>
+                        <a href="assignments.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-tasks"></i>
+                            </span>
+                            <span class="flex-1">Assignments</span>
+                        </a>
+                        <a href="grades.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-line"></i>
+                            </span>
+                            <span class="flex-1">Grades</span>
+                        </a>
+                        <a href="communications.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-comments"></i>
+                            </span>
+                            <span class="flex-1">Communications</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="flex-1">Settings</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Quick Actions -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Quick Actions</h4>
+                        <div class="space-y-2">
+                            <button class="w-full bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                <i class="fas fa-download mr-1"></i>Download Profile
+                            </button>
+                            <button class="w-full bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                <i class="fas fa-share mr-1"></i>Share Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                    <nav class="nav-menu space-y-1 text-sm">
+                        <div class="pt-4">
+                            <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-home"></i>
+                                </span>
+                                <span class="flex-1">Dashboard</span>
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <span class="font-medium flex-1">My Profile</span>
+                            </a>
+                            <a href="schedule.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </span>
+                                <span class="flex-1">My Schedule</span>
+                            </a>
+                            <a href="courses.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-book"></i>
+                                </span>
+                                <span class="flex-1">My Courses</span>
+                            </a>
+                            <a href="students.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-users"></i>
+                                </span>
+                                <span class="flex-1">Students</span>
+                            </a>
+                            <a href="assignments.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-tasks"></i>
+                                </span>
+                                <span class="flex-1">Assignments</span>
+                            </a>
+                            <a href="grades.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-chart-line"></i>
+                                </span>
+                                <span class="flex-1">Grades</span>
+                            </a>
+                            <a href="communications.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-comments"></i>
+                                </span>
+                                <span class="flex-1">Communications</span>
+                            </a>
+                            <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-chart-bar"></i>
+                                </span>
+                                <span class="flex-1">Reports</span>
+                            </a>
+                            <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-cog"></i>
+                                </span>
+                                <span class="flex-1">Settings</span>
+                            </a>
+                        </div>
+                    </nav>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7 h-full flex flex-col">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-100 pb-3">
+                        <div class="flex items-center justify-center w-full lg:w-auto lg:justify-start gap-3">
+                            <button type="button" @click="sidebarOpen = true" class="lg:hidden fixed top-4 left-4 z-50 h-9 w-9 rounded-xl bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="relative">
+                                <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-14 w-auto rounded-2xl lg:hidden">
+                                <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                            </div>
+                            <div class="hidden lg:block">
+                                <h1 class="text-2xl sm:text-3xl font-semibold text-slate-800">Staff Profile</h1>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1 hidden sm:block">Manage your personal information and settings</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hidden sm:flex items-center gap-3">
+                            <!-- Search Bar -->
+                            <div class="relative hidden sm:flex items-center bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 w-64">
+                                <i class="fas fa-search text-slate-400 text-sm mr-2"></i>
+                                <input type="text" placeholder="Search..." class="bg-transparent text-sm text-slate-600 placeholder-slate-400 focus:outline-none flex-1">
+                            </div>
+
+                            <!-- Notifications -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="relative h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                                    <i class="fas fa-bell"></i>
+                                    <span x-show="unreadCount() > 0" x-text="unreadCount()" class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"></span>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                        <h3 class="font-semibold text-slate-800">Notifications</h3>
+                                        <div class="flex gap-2">
+                                            <button @click="notifications.forEach(n => n.read = true)" class="text-xs text-orange-500 hover:text-orange-600 font-medium">Read All</button>
+                                            <button @click="notifications = []" class="text-xs text-red-500 hover:text-red-600 font-medium">Clear</button>
+                                        </div>
+                                    </div>
+                                    <div class="max-h-96 overflow-y-auto">
+                                        <template x-if="notifications.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-bell text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No notifications yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">You're all caught up!</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="notification in notifications" :key="notification.id">
+                                            <div class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition cursor-pointer">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="h-2 w-2 rounded-full mt-2" :class="notification.read ? 'bg-slate-300' : 'bg-orange-500'"></div>
+                                                    <div class="flex-1">
+                                                        <div class="font-medium text-slate-800 text-sm" x-text="notification.title"></div>
+                                                        <div class="text-slate-500 text-xs mt-1" x-text="notification.message"></div>
+                                                        <div class="text-slate-400 text-xs mt-1" x-text="notification.time"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Profile -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition">
+                                    <div class="h-8 w-8 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white">
+                                        <i class="fas fa-user-tie text-sm"></i>
+                                    </div>
+                                    <div class="hidden sm:block text-left">
+                                        <div class="font-medium text-slate-800 text-sm" x-text="profile.firstName + ' ' + profile.lastName"></div>
+                                        <div class="text-slate-500 text-xs" x-text="profile.position"></div>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                                        <i class="fas fa-user text-slate-400"></i>
+                                        <span class="text-sm text-slate-700">Profile</span>
+                                    </a>
+                                    <button class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-500 transition">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span class="text-sm">Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs Navigation -->
+                    <div class="flex border-b border-slate-200 mt-6">
+                        <button @click="switchTab('personal')" 
+                                :class="activeTab === 'personal' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors tab-button">
+                            <i class="fas fa-user mr-2"></i>
+                            Personal Info
+                        </button>
+                        <button @click="switchTab('academic')" 
+                                :class="activeTab === 'academic' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors tab-button">
+                            <i class="fas fa-graduation-cap mr-2"></i>
+                            Academic Info
+                        </button>
+                        <button @click="switchTab('security')" 
+                                :class="activeTab === 'security' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors tab-button">
+                            <i class="fas fa-shield-alt mr-2"></i>
+                            Security
+                        </button>
+                        <button @click="switchTab('preferences')" 
+                                :class="activeTab === 'preferences' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors tab-button">
+                            <i class="fas fa-cog mr-2"></i>
+                            Preferences
+                        </button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="flex-1 overflow-y-auto">
+                        <!-- Personal Info Tab -->
+                        <div x-show="activeTab === 'personal'" class="mt-6">
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                                <div class="flex items-center justify-between mb-6">
+                                    <h3 class="text-lg font-semibold text-slate-800">Personal Information</h3>
+                                    <button @click="editingProfile = !editingProfile" class="px-4 py-2 bg-orange-100 text-orange-500 rounded-lg text-sm font-medium hover:bg-orange-200 transition">
+                                        <i class="fas fa-edit mr-2"></i>
+                                        <span x-text="editingProfile ? 'Cancel' : 'Edit'"></span>
+                                    </button>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    <!-- Profile Picture -->
+                                    <div class="lg:col-span-1">
+                                        <div class="text-center">
+                                            <div class="relative inline-block">
+                                                <div class="h-32 w-32 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white profile-picture">
+                                                    <i class="fas fa-user-tie text-4xl"></i>
+                                                </div>
+                                                <button x-show="editingProfile" @click="$refs.profilePictureInput.click()" class="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600 transition">
+                                                    <i class="fas fa-camera text-xs"></i>
+                                                </button>
+                                                <input x-ref="profilePictureInput" type="file" accept="image/*" @change="uploadProfilePicture($event)" class="hidden">
+                                            </div>
+                                            <h4 class="mt-4 text-lg font-semibold text-slate-800" x-text="profile.firstName + ' ' + profile.lastName"></h4>
+                                            <p class="text-sm text-slate-500" x-text="profile.position"></p>
+                                            <p class="text-xs text-slate-400 mt-1" x-text="profile.employeeId"></p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Personal Details -->
+                                    <div class="lg:col-span-2">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-700 mb-1">First Name</label>
+                                                <input x-model="profile.firstName" type="text" :disabled="!editingProfile" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400" :class="editingProfile ? 'bg-white' : 'bg-slate-50'">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-700 mb-1">Last Name</label>
+                                                <input x-model="profile.lastName" type="text" :disabled="!editingProfile" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400" :class="editingProfile ? 'bg-white' : 'bg-slate-50'">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-700 mb-1">Email</label>
+                                                <input x-model="profile.email" type="email" :disabled="!editingProfile" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400" :class="editingProfile ? 'bg-white' : 'bg-slate-50'">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-700 mb-1">Phone</label>
+                                                <input x-model="profile.phone" type="tel" :disabled="!editingProfile" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400" :class="editingProfile ? 'bg-white' : 'bg-slate-50'">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-700 mb-1">Department</label>
+                                                <input x-model="profile.department" type="text" :disabled="!editingProfile" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400" :class="editingProfile ? 'bg-white' : 'bg-slate-50'">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-700 mb-1">Position</label>
+                                                <input x-model="profile.position" type="text" :disabled="!editingProfile" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400" :class="editingProfile ? 'bg-white' : 'bg-slate-50'">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-700 mb-1">Office</label>
+                                                <input x-model="profile.office" type="text" :disabled="!editingProfile" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400" :class="editingProfile ? 'bg-white' : 'bg-slate-50'">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-700 mb-1">Join Date</label>
+                                                <input x-model="profile.joinDate" type="date" :disabled="!editingProfile" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400" :class="editingProfile ? 'bg-white' : 'bg-slate-50'">
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Bio -->
+                                        <div class="mt-4">
+                                            <label class="block text-xs font-medium text-slate-700 mb-1">Bio</label>
+                                            <textarea x-model="profile.bio" :disabled="!editingProfile" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400" :class="editingProfile ? 'bg-white' : 'bg-slate-50'"></textarea>
+                                        </div>
+                                        
+                                        <!-- Save Button -->
+                                        <div x-show="editingProfile" class="mt-4">
+                                            <button @click="updateProfile()" class="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                                                <i class="fas fa-save mr-2"></i>Save Changes
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Academic Info Tab -->
+                        <div x-show="activeTab === 'academic'" class="mt-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <!-- Expertise -->
+                                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Areas of Expertise</h3>
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-for="expertise in profile.expertise" :key="expertise">
+                                            <span class="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs font-medium" x-text="expertise"></span>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Education -->
+                                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Education</h3>
+                                    <div class="space-y-3">
+                                        <template x-for="edu in profile.education" :key="edu.degree">
+                                            <div class="border-l-2 border-orange-400 pl-4">
+                                                <div class="font-medium text-slate-800 text-sm" x-text="edu.degree"></div>
+                                                <div class="text-xs text-slate-500" x-text="edu.institution"></div>
+                                                <div class="text-xs text-slate-400" x-text="edu.year"></div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Publications -->
+                                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 lg:col-span-2">
+                                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Publications</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <template x-for="pub in profile.publications" :key="pub.title">
+                                            <div class="border border-slate-200 rounded-lg p-3">
+                                                <div class="font-medium text-slate-800 text-sm" x-text="pub.title"></div>
+                                                <div class="text-xs text-slate-500" x-text="pub.journal"></div>
+                                                <div class="text-xs text-slate-400" x-text="pub.year"></div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Tab -->
+                        <div x-show="activeTab === 'security'" class="mt-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <!-- Change Password -->
+                                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Change Password</h3>
+                                    <div x-show="!changingPassword">
+                                        <p class="text-sm text-slate-500 mb-4">Last password change: 30 days ago</p>
+                                        <button @click="changingPassword = true" class="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                                            <i class="fas fa-key mr-2"></i>Change Password
+                                        </button>
+                                    </div>
+                                    <div x-show="changingPassword" x-transition>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-700 mb-1">Current Password</label>
+                                                <input x-model="currentPassword" type="password" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-700 mb-1">New Password</label>
+                                                <input x-model="newPassword" type="password" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-700 mb-1">Confirm New Password</label>
+                                                <input x-model="confirmPassword" type="password" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <button @click="changePassword()" class="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                                                    <i class="fas fa-save mr-2"></i>Update Password
+                                                </button>
+                                                <button @click="changingPassword = false; currentPassword = ''; newPassword = ''; confirmPassword = ''" class="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-300 transition">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Two-Factor Authentication -->
+                                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Two-Factor Authentication</h3>
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm text-slate-500">Add an extra layer of security to your account</p>
+                                            <p class="text-xs text-slate-400 mt-1">Status: <span class="font-medium" :class="settings.twoFactorAuth ? 'text-green-600' : 'text-slate-600'" x-text="settings.twoFactorAuth ? 'Enabled' : 'Disabled'"></span></p>
+                                        </div>
+                                        <button @click="settings.twoFactorAuth = !settings.twoFactorAuth" class="px-4 py-2 rounded-lg text-sm font-medium transition" :class="settings.twoFactorAuth ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-green-100 text-green-600 hover:bg-green-200'">
+                                            <i class="fas fa-shield-alt mr-2"></i>
+                                            <span x-text="settings.twoFactorAuth ? 'Disable' : 'Enable'"></span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Login History -->
+                                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 lg:col-span-2">
+                                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Recent Login Activity</h3>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between p-3 border border-slate-100 rounded-lg">
+                                            <div class="flex items-center gap-3">
+                                                <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                                                    <i class="fas fa-desktop text-green-600 text-xs"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-slate-800 text-sm">Chrome on Windows</div>
+                                                    <div class="text-xs text-slate-500">192.168.1.100 • New York, USA</div>
+                                                </div>
+                                            </div>
+                                            <div class="text-xs text-slate-400">2 hours ago</div>
+                                        </div>
+                                        <div class="flex items-center justify-between p-3 border border-slate-100 rounded-lg">
+                                            <div class="flex items-center gap-3">
+                                                <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                                    <i class="fas fa-mobile-alt text-blue-600 text-xs"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-slate-800 text-sm">Safari on iPhone</div>
+                                                    <div class="text-xs text-slate-500">192.168.1.101 • New York, USA</div>
+                                                </div>
+                                            </div>
+                                            <div class="text-xs text-slate-400">Yesterday</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preferences Tab -->
+                        <div x-show="activeTab === 'preferences'" class="mt-6">
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                                <div class="flex items-center justify-between mb-6">
+                                    <h3 class="text-lg font-semibold text-slate-800">Notification Preferences</h3>
+                                    <button @click="editingSettings = !editingSettings" class="px-4 py-2 bg-orange-100 text-orange-500 rounded-lg text-sm font-medium hover:bg-orange-200 transition">
+                                        <i class="fas fa-edit mr-2"></i>
+                                        <span x-text="editingSettings ? 'Cancel' : 'Edit'"></span>
+                                    </button>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="font-medium text-slate-800 text-sm">Email Notifications</div>
+                                            <div class="text-xs text-slate-500">Receive email updates about your account</div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" x-model="settings.emailNotifications" :disabled="!editingSettings" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="font-medium text-slate-800 text-sm">Push Notifications</div>
+                                            <div class="text-xs text-slate-500">Receive push notifications on your device</div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" x-model="settings.pushNotifications" :disabled="!editingSettings" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="font-medium text-slate-800 text-sm">SMS Alerts</div>
+                                            <div class="text-xs text-slate-500">Receive important updates via SMS</div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" x-model="settings.smsAlerts" :disabled="!editingSettings" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="font-medium text-slate-800 text-sm">Weekly Digest</div>
+                                            <div class="text-xs text-slate-500">Receive a weekly summary of activities</div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" x-model="settings.weeklyDigest" :disabled="!editingSettings" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Save Button -->
+                                <div x-show="editingSettings" class="mt-6">
+                                    <button @click="updateSettings()" class="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                                        <i class="fas fa-save mr-2"></i>Save Preferences
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

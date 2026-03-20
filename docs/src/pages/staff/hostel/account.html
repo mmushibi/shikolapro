@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Hostel Account</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        [x-cloak] { display: none !important; }
+        .modal-hidden { display: none !important; }
+        .modal-visible { display: flex !important; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        activeTab: 'profile',
+        showEditProfile: false,
+        showChangePassword: false,
+        showSettings: false,
+        showCheckIn: false,
+        showCheckOut: false,
+        profileData: {
+            firstName: '',
+            lastName: '',
+            email: '',
+            phone: '',
+            role: '',
+            department: '',
+            joinDate: ''
+        },
+        settings: {
+            emailNotifications: true,
+            smsNotifications: false,
+            pushNotifications: true,
+            weeklyReports: true,
+            maintenanceAlerts: true,
+            visitorAlerts: false
+        },
+        
+        // Form data objects
+        editProfileData: {
+            firstName: '',
+            lastName: '',
+            email: '',
+            phone: '',
+            role: '',
+            department: '',
+            joinDate: ''
+        },
+        passwordData: {
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: ''
+        },
+        
+        // Button functions
+        quickCheckIn() {
+            console.log('Quick check-in clicked');
+            this.showCheckIn = true;
+        },
+        
+        quickCheckOut() {
+            console.log('Quick check-out clicked');
+            this.showCheckOut = true;
+        },
+        
+        editProfile() {
+            console.log('Edit profile clicked');
+            this.showEditProfile = true;
+        },
+        
+        changePassword() {
+            console.log('Change password clicked');
+            this.showChangePassword = true;
+        },
+        
+        closeAllModals() {
+            this.showEditProfile = false;
+            this.showChangePassword = false;
+            this.showSettings = false;
+            this.showCheckIn = false;
+            this.showCheckOut = false;
+        },
+        
+        // Save functions
+        async saveProfile() {
+            try {
+                console.log('Saving profile:', this.editProfileData);
+                
+                // Validate required fields
+                if (!this.editProfileData.firstName || !this.editProfileData.lastName || !this.editProfileData.email) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showError('Please fill in all required fields');
+                    } else {
+                        alert('Please fill in all required fields');
+                    }
+                    return;
+                }
+                
+                // Call API to save profile
+                const response = await window.sharedApiClient.put('/hostel/profile', this.editProfileData);
+                
+                if (response.success) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showSuccess('Profile updated successfully');
+                    } else {
+                        alert('Profile updated successfully');
+                    }
+                    
+                    // Update profile data and close modal
+                    this.profileData = { ...this.editProfileData };
+                    this.closeAllModals();
+                } else {
+                    throw new Error(response.message || 'Failed to update profile');
+                }
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                if (window.sharedMessages) {
+                    window.sharedMessages.showError('Failed to update profile: ' + error.message);
+                } else {
+                    alert('Failed to update profile: ' + error.message);
+                }
+            }
+        },
+        
+        async savePassword() {
+            try {
+                console.log('Saving password change');
+                
+                // Validate required fields
+                if (!this.passwordData.currentPassword || !this.passwordData.newPassword || !this.passwordData.confirmPassword) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showError('Please fill in all password fields');
+                    } else {
+                        alert('Please fill in all password fields');
+                    }
+                    return;
+                }
+                
+                // Validate password match
+                if (this.passwordData.newPassword !== this.passwordData.confirmPassword) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showError('New passwords do not match');
+                    } else {
+                        alert('New passwords do not match');
+                    }
+                    return;
+                }
+                
+                // Call API to change password
+                const response = await window.sharedApiClient.put('/hostel/password', {
+                    currentPassword: this.passwordData.currentPassword,
+                    newPassword: this.passwordData.newPassword
+                });
+                
+                if (response.success) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showSuccess('Password changed successfully');
+                    } else {
+                        alert('Password changed successfully');
+                    }
+                    
+                    // Reset form and close modal
+                    this.resetPasswordForm();
+                    this.closeAllModals();
+                } else {
+                    throw new Error(response.message || 'Failed to change password');
+                }
+            } catch (error) {
+                console.error('Error changing password:', error);
+                if (window.sharedMessages) {
+                    window.sharedMessages.showError('Failed to change password: ' + error.message);
+                } else {
+                    alert('Failed to change password: ' + error.message);
+                }
+            }
+        },
+        
+        async saveSettings() {
+            try {
+                console.log('Saving settings:', this.settings);
+                
+                // Call API to save settings
+                const response = await window.sharedApiClient.put('/hostel/settings', this.settings);
+                
+                if (response.success) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showSuccess('Settings saved successfully');
+                    } else {
+                        alert('Settings saved successfully');
+                    }
+                } else {
+                    throw new Error(response.message || 'Failed to save settings');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                if (window.sharedMessages) {
+                    window.sharedMessages.showError('Failed to save settings: ' + error.message);
+                } else {
+                    alert('Failed to save settings: ' + error.message);
+                }
+            }
+        },
+        
+        // Form reset functions
+        resetPasswordForm() {
+            this.passwordData = {
+                currentPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            };
+        }
+    }" class="min-h-screen flex">
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="rooms.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-bed"></i>
+                            </span>
+                            <span class="flex-1">Rooms</span>
+                        </a>
+                        <a href="residents.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-friends"></i>
+                            </span>
+                            <span class="flex-1">Residents</span>
+                        </a>
+                        <a href="visitors.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-check"></i>
+                            </span>
+                            <span class="flex-1">Visitors</span>
+                        </a>
+                        <a href="inventory.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-boxes"></i>
+                            </span>
+                            <span class="flex-1">Inventory</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-cog"></i>
+                            </span>
+                            <span class="font-medium flex-1">Account</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Quick Actions Card -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Quick Actions</h4>
+                        <p class="text-xs opacity-90 mb-3">Manage daily hostel operations</p>
+                        <div class="flex gap-2">
+                            <button @click="quickCheckIn()" class="flex-1 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check In
+                            </button>
+                            <button @click="quickCheckOut()" class="flex-1 bg-white text-blue-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                   <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="rooms.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-bed"></i>
+                            </span>
+                            <span class="flex-1">Rooms</span>
+                        </a>
+                        <a href="residents.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-friends"></i>
+                            </span>
+                            <span class="flex-1">Residents</span>
+                        </a>
+                        <a href="visitors.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-check"></i>
+                            </span>
+                            <span class="flex-1">Visitors</span>
+                        </a>
+                        <a href="inventory.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-boxes"></i>
+                            </span>
+                            <span class="flex-1">Inventory</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="account.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-cog"></i>
+                            </span>
+                            <span class="font-medium flex-1">Account</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Quick Actions Card -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Quick Actions</h4>
+                        <p class="text-xs opacity-90 mb-3">Manage daily hostel operations</p>
+                        <div class="flex gap-2">
+                            <button @click="quickCheckIn()" class="flex-1 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check In
+                            </button>
+                            <button @click="quickCheckOut()" class="flex-1 bg-white text-blue-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h1 class="text-2xl font-semibold text-slate-800">Account Settings</h1>
+                            <p class="text-sm text-slate-400 mt-1">Manage your profile and preferences</p>
+                        </div>
+                    </div>
+
+                    <!-- Tab Navigation -->
+                    <div class="flex flex-wrap gap-2 mt-6 border-b border-slate-100">
+                        <button @click="activeTab = 'profile'" 
+                                class="px-4 py-2 text-sm font-medium transition -mb-px"
+                                :class="activeTab === 'profile' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'">
+                            <i class="fas fa-user mr-2"></i>Profile
+                        </button>
+                        <button @click="activeTab = 'security'" 
+                                class="px-4 py-2 text-sm font-medium transition -mb-px"
+                                :class="activeTab === 'security' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'">
+                            <i class="fas fa-shield-alt mr-2"></i>Security
+                        </button>
+                        <button @click="activeTab = 'notifications'" 
+                                class="px-4 py-2 text-sm font-medium transition -mb-px"
+                                :class="activeTab === 'notifications' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'">
+                            <i class="fas fa-bell mr-2"></i>Notifications
+                        </button>
+                        <button @click="activeTab = 'preferences'" 
+                                class="px-4 py-2 text-sm font-medium transition -mb-px"
+                                :class="activeTab === 'preferences' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'">
+                            <i class="fas fa-cog mr-2"></i>Preferences
+                        </button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="mt-6">
+                        <!-- Profile Tab -->
+                        <div x-show="activeTab === 'profile'" class="space-y-6">
+                            <!-- Profile Overview -->
+                            <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200">
+                                <div class="flex items-center gap-6">
+                                    <div class="h-24 w-24 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white text-3xl font-bold">
+                                        <span x-text="profileData.firstName.charAt(0) + profileData.lastName.charAt(0)"></span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h2 class="text-xl font-semibold text-slate-800" x-text="profileData.firstName + ' ' + profileData.lastName"></h2>
+                                        <p class="text-slate-600" x-text="profileData.role"></p>
+                                        <p class="text-sm text-slate-500 mt-1" x-text="profileData.department"></p>
+                                        <div class="flex gap-4 mt-3">
+                                            <div class="text-sm">
+                                                <span class="text-slate-500">Email:</span>
+                                                <span class="text-slate-700 ml-1" x-text="profileData.email"></span>
+                                            </div>
+                                            <div class="text-sm">
+                                                <span class="text-slate-500">Phone:</span>
+                                                <span class="text-slate-700 ml-1" x-text="profileData.phone"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button @click="editProfile()" class="px-4 py-2 bg-white text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-50 transition">
+                                        <i class="fas fa-edit mr-2"></i>Edit Profile
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Account Information -->
+                            <div class="bg-white border border-slate-200 rounded-xl p-5">
+                                <h3 class="text-sm font-semibold text-slate-800 mb-4">Account Information</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between py-2 border-b border-slate-100">
+                                            <span class="text-sm text-slate-500">Employee ID</span>
+                                            <span class="text-sm font-medium text-slate-700"></span>
+                                        </div>
+                                        <div class="flex justify-between py-2 border-b border-slate-100">
+                                            <span class="text-sm text-slate-500">Join Date</span>
+                                            <span class="text-sm font-medium text-slate-700" x-text="profileData.joinDate"></span>
+                                        </div>
+                                        <div class="flex justify-between py-2 border-b border-slate-100">
+                                            <span class="text-sm text-slate-500">Account Status</span>
+                                            <span class="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium">Not Set</span>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between py-2 border-b border-slate-100">
+                                            <span class="text-sm text-slate-500">Last Login</span>
+                                            <span class="text-sm font-medium text-slate-700"></span>
+                                        </div>
+                                        <div class="flex justify-between py-2 border-b border-slate-100">
+                                            <span class="text-sm text-slate-500">Password Changed</span>
+                                            <span class="text-sm font-medium text-slate-700"></span>
+                                        </div>
+                                        <div class="flex justify-between py-2 border-b border-slate-100">
+                                            <span class="text-sm text-slate-500">2FA Status</span>
+                                            <span class="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium">Not Set</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Tab -->
+                        <div x-show="activeTab === 'security'" class="space-y-6">
+                            <div class="bg-white border border-slate-200 rounded-xl p-5">
+                                <h3 class="text-sm font-semibold text-slate-800 mb-4">Password & Authentication</h3>
+                                <div class="space-y-4">
+                                    <button @click="changePassword()" class="w-full flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                                                <i class="fas fa-key text-blue-600 text-sm"></i>
+                                            </div>
+                                            <div class="text-left">
+                                                <div class="text-sm font-medium text-slate-800">Change Password</div>
+                                                <div class="text-xs text-slate-500">Last changed 30 days ago</div>
+                                            </div>
+                                        </div>
+                                        <i class="fas fa-chevron-right text-slate-400"></i>
+                                    </button>
+                                    
+                                    <button class="w-full flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
+                                                <i class="fas fa-mobile-alt text-green-600 text-sm"></i>
+                                            </div>
+                                            <div class="text-left">
+                                                <div class="text-sm font-medium text-slate-800">Two-Factor Authentication</div>
+                                                <div class="text-xs text-slate-500">Extra security for your account</div>
+                                            </div>
+                                        </div>
+                                        <div class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Enabled</div>
+                                    </button>
+
+                                    <button class="w-full flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                                                <i class="fas fa-history text-purple-600 text-sm"></i>
+                                            </div>
+                                            <div class="text-left">
+                                                <div class="text-sm font-medium text-slate-800">Login History</div>
+                                                <div class="text-xs text-slate-500">View recent account activity</div>
+                                            </div>
+                                        </div>
+                                        <i class="fas fa-chevron-right text-slate-400"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notifications Tab -->
+                        <div x-show="activeTab === 'notifications'" class="space-y-6">
+                            <div class="bg-white border border-slate-200 rounded-xl p-5">
+                                <h3 class="text-sm font-semibold text-slate-800 mb-4">Notification Preferences</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                        <div>
+                                            <div class="text-sm font-medium text-slate-800">Email Notifications</div>
+                                            <div class="text-xs text-slate-500">Receive updates via email</div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" x-model="settings.emailNotifications" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                        </label>
+                                    </div>
+
+                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                        <div>
+                                            <div class="text-sm font-medium text-slate-800">SMS Notifications</div>
+                                            <div class="text-xs text-slate-500">Receive alerts via SMS</div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" x-model="settings.smsNotifications" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                        </label>
+                                    </div>
+
+                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                        <div>
+                                            <div class="text-sm font-medium text-slate-800">Push Notifications</div>
+                                            <div class="text-xs text-slate-500">Browser push notifications</div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" x-model="settings.pushNotifications" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                        </label>
+                                    </div>
+
+                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                        <div>
+                                            <div class="text-sm font-medium text-slate-800">Weekly Reports</div>
+                                            <div class="text-xs text-slate-500">Summary of hostel operations</div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" x-model="settings.weeklyReports" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preferences Tab -->
+                        <div x-show="activeTab === 'preferences'" class="space-y-6">
+                            <div class="bg-white border border-slate-200 rounded-xl p-5">
+                                <h3 class="text-sm font-semibold text-slate-800 mb-4">System Preferences</h3>
+                                <div class="space-y-4">
+                                    <div class="p-3 bg-slate-50 rounded-lg">
+                                        <div class="text-sm font-medium text-slate-800 mb-2">Language</div>
+                                        <select class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <option>English</option>
+                                            <option>French</option>
+                                            <option>Spanish</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="p-3 bg-slate-50 rounded-lg">
+                                        <div class="text-sm font-medium text-slate-800 mb-2">Time Zone</div>
+                                        <select class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <option>Central Africa Time (CAT)</option>
+                                            <option>Greenwich Mean Time (GMT)</option>
+                                            <option>Eastern Time (ET)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="p-3 bg-slate-50 rounded-lg">
+                                        <div class="text-sm font-medium text-slate-800 mb-2">Date Format</div>
+                                        <select class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <option>DD/MM/YYYY</option>
+                                            <option>MM/DD/YYYY</option>
+                                            <option>YYYY-MM-DD</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-end pt-4">
+                                    <button @click="saveSettings()" class="px-6 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg text-sm font-medium hover:shadow-lg transition">
+                                        <i class="fas fa-save mr-2"></i>Save Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <template x-if="showEditProfile">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800">Edit Profile</h3>
+                        <button @click="closeAllModals()" class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                    </div>
+                    <form class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">First Name</label>
+                            <input type="text" x-model="editProfileData.firstName" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter first name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Last Name</label>
+                            <input type="text" x-model="editProfileData.lastName" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter last name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                            <input type="email" x-model="editProfileData.email" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter email">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                            <input type="tel" x-model="editProfileData.phone" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter phone number">
+                        </div>
+                        <div class="flex gap-3 pt-4">
+                            <button type="button" @click="closeAllModals()" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition">
+                                Cancel
+                            </button>
+                            <button type="button" @click="saveProfile()" class="flex-1 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:shadow-lg transition">
+                                Save Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Change Password Modal -->
+    <template x-if="showChangePassword">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800">Change Password</h3>
+                        <button @click="closeAllModals()" class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                    </div>
+                    <form class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Current Password</label>
+                            <input type="password" x-model="passwordData.currentPassword" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter current password">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">New Password</label>
+                            <input type="password" x-model="passwordData.newPassword" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter new password">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Confirm New Password</label>
+                            <input type="password" x-model="passwordData.confirmPassword" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Confirm new password">
+                        </div>
+                        <div class="flex gap-3 pt-4">
+                            <button type="button" @click="closeAllModals()" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition">
+                                Cancel
+                            </button>
+                            <button type="button" @click="savePassword()" class="flex-1 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:shadow-lg transition">
+                                Change Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </template>
+</body>
+</html>

@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Finance & Accounting</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="/shared-assets/js/accountant-saving-system.js"></script>
+    <script src="/shared-assets/js/accountant-realtime-system.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+    <style>
+        /* Font family setup */
+        body {
+            font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Consistent font sizes */
+        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-sm { font-size: 0.825rem !important; line-height: 1.125rem !important; }
+        .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .text-lg { font-size: 0.925rem !important; line-height: 1.375rem !important; }
+        .text-xl { font-size: 0.975rem !important; line-height: 1.5rem !important; }
+        .text-2xl { font-size: 1.025rem !important; line-height: 1.625rem !important; }
+        .text-3xl { font-size: 1.075rem !important; line-height: 1.75rem !important; }
+
+        /* Override any larger font sizes */
+        .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+
+        /* Custom scrollbar to match app theme */
+        body, body * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        body::-webkit-scrollbar,
+        body *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        body::-webkit-scrollbar-track,
+        body *::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        body::-webkit-scrollbar-thumb,
+        body *::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #f97316, #ea580c);
+            border-radius: 9999px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover,
+        body *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ea580c, #c2410c);
+        }
+
+        /* Custom animations */
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Ensure consistent small text throughout */
+        h1 { font-size: 1.25rem !important; }
+        h2 { font-size: 1.125rem !important; }
+        h3 { font-size: 1rem !important; }
+        h4 { font-size: 0.925rem !important; }
+        h5 { font-size: 0.875rem !important; }
+        h6 { font-size: 0.825rem !important; }
+        
+        /* Input and button text sizes */
+        input, button, select, textarea {
+            font-size: 0.825rem !important;
+        }
+
+        /* Badge and label text */
+        .badge, .label {
+            font-size: 0.7rem !important;
+        }
+
+        /* Chart bar styles */
+        .chart-bar-empty { height: 5%; background-color: #e2e8f0; }
+        .chart-bar-1 { height: 60%; }
+        .chart-bar-2 { height: 75%; }
+        .chart-bar-3 { height: 85%; }
+        .chart-bar-4 { height: 70%; }
+        .chart-bar-5 { height: 90%; }
+        .chart-bar-6 { height: 100%; }
+
+        /* Tab styles */
+        .tab-button {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to right, #f97316, #ea580c);
+            border-radius: 2px 2px 0 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        mobileSearchOpen: false,
+        mobileNotificationsOpen: false,
+        mobileProfileOpen: false,
+        mobileSearchQuery: '',
+        pageTitle: 'Finance & Accounting',
+        pageSubtitle: 'Manage fees, expenses, and financial operations',
+        activeTab: 'fees',
+        notifications: [],
+        
+        // Fee Management data
+        feeStructures: [],
+        feeCollections: [],
+        showAddFeeStructure: false,
+        showAddFeeCollection: false,
+        newFeeStructureName: '',
+        newFeeStructureAmount: '',
+        newFeeStructureFrequency: '',
+        newFeeCollectionStudent: '',
+        newFeeCollectionAmount: '',
+        newFeeCollectionDate: '',
+        newFeeCollectionStatus: '',
+        
+        // Expense Management data
+        expenses: [],
+        showAddExpense: false,
+        newExpenseCategory: '',
+        newExpenseDescription: '',
+        newExpenseAmount: '',
+        newExpenseDate: '',
+        
+        // Budget Management data
+        budgets: [],
+        showAddBudget: false,
+        newBudgetDepartment: '',
+        newBudgetAmount: '',
+        newBudgetPeriod: '',
+        newBudgetDescription: '',
+        
+        // Invoice Management data
+        invoices: [],
+        showAddInvoice: false,
+        newInvoiceNumber: '',
+        newInvoiceClient: '',
+        newInvoiceAmount: '',
+        newInvoiceDueDate: '',
+        newInvoiceStatus: '',
+        
+        // Common methods
+        init() {
+            this.loadSampleData();
+        },
+        
+        loadSampleData() {
+            // Initialize empty arrays - no mock data
+        },
+        
+        // Tab management
+        switchTab(tab) {
+            console.log('Switching to tab:', tab);
+            this.activeTab = tab;
+        },
+        
+        // Fee Structure methods
+        addFeeStructure() {
+            console.log('Adding fee structure:', this.newFeeStructureName);
+            if (this.newFeeStructureName && this.newFeeStructureAmount && this.newFeeStructureFrequency) {
+                this.feeStructures.unshift({
+                    id: Date.now(),
+                    name: this.newFeeStructureName,
+                    amount: parseFloat(this.newFeeStructureAmount),
+                    frequency: this.newFeeStructureFrequency,
+                    status: 'Active'
+                });
+                this.newFeeStructureName = '';
+                this.newFeeStructureAmount = '';
+                this.newFeeStructureFrequency = '';
+                this.showAddFeeStructure = false;
+                console.log('Fee structure added successfully');
+            }
+        },
+        
+        deleteFeeStructure(id) {
+            console.log('Deleting fee structure:', id);
+            this.feeStructures = this.feeStructures.filter(f => f.id !== id);
+        },
+        
+        // Fee Collection methods
+        addFeeCollection() {
+            console.log('Adding fee collection');
+            if (this.newFeeCollectionStudent && this.newFeeCollectionAmount && this.newFeeCollectionDate && this.newFeeCollectionStatus) {
+                this.feeCollections.unshift({
+                    id: Date.now(),
+                    student: this.newFeeCollectionStudent,
+                    amount: parseFloat(this.newFeeCollectionAmount),
+                    date: this.newFeeCollectionDate,
+                    status: this.newFeeCollectionStatus,
+                    receiptNumber: 'REC-' + Date.now()
+                });
+                this.newFeeCollectionStudent = '';
+                this.newFeeCollectionAmount = '';
+                this.newFeeCollectionDate = '';
+                this.newFeeCollectionStatus = '';
+                this.showAddFeeCollection = false;
+                console.log('Fee collection added successfully');
+            }
+        },
+        
+        deleteFeeCollection(id) {
+            console.log('Deleting fee collection:', id);
+            this.feeCollections = this.feeCollections.filter(f => f.id !== id);
+        },
+        
+        // Expense methods
+        addExpense() {
+            console.log('Adding expense');
+            if (this.newExpenseCategory && this.newExpenseDescription && this.newExpenseAmount && this.newExpenseDate) {
+                this.expenses.unshift({
+                    id: Date.now(),
+                    category: this.newExpenseCategory,
+                    description: this.newExpenseDescription,
+                    amount: parseFloat(this.newExpenseAmount),
+                    date: this.newExpenseDate,
+                    status: 'Pending'
+                });
+                this.newExpenseCategory = '';
+                this.newExpenseDescription = '';
+                this.newExpenseAmount = '';
+                this.newExpenseDate = '';
+                this.showAddExpense = false;
+                console.log('Expense added successfully');
+            }
+        },
+        
+        deleteExpense(id) {
+            console.log('Deleting expense:', id);
+            this.expenses = this.expenses.filter(e => e.id !== id);
+        },
+        
+        // Budget methods
+        addBudget() {
+            console.log('Adding budget');
+            if (this.newBudgetDepartment && this.newBudgetAmount && this.newBudgetPeriod && this.newBudgetDescription) {
+                this.budgets.unshift({
+                    id: Date.now(),
+                    department: this.newBudgetDepartment,
+                    amount: parseFloat(this.newBudgetAmount),
+                    period: this.newBudgetPeriod,
+                    description: this.newBudgetDescription,
+                    spent: 0,
+                    remaining: parseFloat(this.newBudgetAmount),
+                    status: 'Active'
+                });
+                this.newBudgetDepartment = '';
+                this.newBudgetAmount = '';
+                this.newBudgetPeriod = '';
+                this.newBudgetDescription = '';
+                this.showAddBudget = false;
+                console.log('Budget added successfully');
+            }
+        },
+        
+        deleteBudget(id) {
+            console.log('Deleting budget:', id);
+            this.budgets = this.budgets.filter(b => b.id !== id);
+        },
+        
+        // Invoice methods
+        addInvoice() {
+            console.log('Adding invoice');
+            if (this.newInvoiceNumber && this.newInvoiceClient && this.newInvoiceAmount && this.newInvoiceDueDate && this.newInvoiceStatus) {
+                this.invoices.unshift({
+                    id: Date.now(),
+                    invoiceNumber: this.newInvoiceNumber,
+                    client: this.newInvoiceClient,
+                    amount: parseFloat(this.newInvoiceAmount),
+                    dueDate: this.newInvoiceDueDate,
+                    status: this.newInvoiceStatus,
+                    issueDate: new Date().toISOString().split('T')[0]
+                });
+                this.newInvoiceNumber = '';
+                this.newInvoiceClient = '';
+                this.newInvoiceAmount = '';
+                this.newInvoiceDueDate = '';
+                this.newInvoiceStatus = '';
+                this.showAddInvoice = false;
+                console.log('Invoice added successfully');
+            }
+        },
+        
+        deleteInvoice(id) {
+            console.log('Deleting invoice:', id);
+            this.invoices = this.invoices.filter(i => i.id !== id);
+        },
+        
+        unreadCount() {
+            return this.notifications.filter(n => !n.read).length;
+        }
+    }" x-init="init()" class="min-h-screen flex">
+    
+    <script>
+        // Quick Actions Functions
+        function showAddFeeCollectionForm() {
+            // Navigate to fees page with add form shown
+            window.location.href = 'fees.html?action=add';
+        }
+        
+        function generateInvoice() {
+            // Navigate to invoices page with add form shown
+            window.location.href = 'invoices.html?action=add';
+        }
+        
+        function exportReport() {
+            // Navigate to reports page
+            window.location.href = 'reports.html';
+        }
+        
+        function sendReminders() {
+            // Navigate to fees page for reminders
+            window.location.href = 'fees.html?action=reminders';
+        }
+        
+        function openSettings() {
+            // Navigate to settings page
+            window.location.href = 'settings.html';
+        }
+    </script>
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="font-medium flex-1">Finance Dashboard</span>
+                        </a>
+                        <a href="fees.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </span>
+                            <span class="flex-1">Fee Management</span>
+                        </a>
+                        <a href="expenses.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-receipt"></i>
+                            </span>
+                            <span class="flex-1">Expenses</span>
+                        </a>
+                        <a href="budget.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-pie"></i>
+                            </span>
+                            <span class="flex-1">Budget</span>
+                        </a>
+                        <a href="invoices.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-file-invoice"></i>
+                            </span>
+                            <span class="flex-1">Invoices</span>
+                        </a>
+                        <a href="payroll.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-users-cog"></i>
+                            </span>
+                            <span class="flex-1">Payroll</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Financial Reports</span>
+                        </a>
+                        <a href="audit.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-clipboard-check"></i>
+                            </span>
+                            <span class="flex-1">Audit Trail</span>
+                        </a>
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="flex-1">Settings</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Financial Summary -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Financial Summary</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Monthly Revenue</span>
+                                <span class="font-medium">0</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Monthly Expenses</span>
+                                <span class="font-medium">0</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Net Profit</span>
+                                <span class="font-medium">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" title="Close sidebar" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                    <nav class="nav-menu space-y-1 text-sm">
+                        <div class="pt-4">
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-home"></i>
+                                </span>
+                                <span class="font-medium flex-1">Finance Dashboard</span>
+                            </a>
+                            <a href="fees.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </span>
+                                <span class="flex-1">Fee Management</span>
+                            </a>
+                            <a href="expenses.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-receipt"></i>
+                                </span>
+                                <span class="flex-1">Expenses</span>
+                            </a>
+                            <a href="budget.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-chart-pie"></i>
+                                </span>
+                                <span class="flex-1">Budget</span>
+                            </a>
+                            <a href="invoices.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-file-invoice"></i>
+                                </span>
+                                <span class="flex-1">Invoices</span>
+                            </a>
+                            <a href="payroll.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-users-cog"></i>
+                                </span>
+                                <span class="flex-1">Payroll</span>
+                            </a>
+                            <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-chart-bar"></i>
+                                </span>
+                                <span class="flex-1">Financial Reports</span>
+                            </a>
+                            <a href="audit.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </span>
+                                <span class="flex-1">Audit Trail</span>
+                            </a>
+                            <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-cog"></i>
+                                </span>
+                                <span class="flex-1">Settings</span>
+                            </a>
+                        </div>
+                    </nav>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7 h-full flex flex-col">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-100 pb-3">
+                        <div class="flex items-center justify-center w-full lg:w-auto lg:justify-start gap-3">
+                            <button type="button" @click="sidebarOpen = true" title="Open sidebar" class="lg:hidden fixed top-4 left-4 z-50 h-9 w-9 rounded-xl bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="relative">
+                                <img src="../../../../public/images/logo.png" alt="Shikola Pro" class="h-14 w-auto rounded-2xl lg:hidden">
+                                <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                            </div>
+                            <div class="hidden lg:block">
+                                <h1 class="text-2xl sm:text-3xl font-semibold text-slate-800">Finance & Accounting</h1>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1 hidden sm:block">Manage fees, expenses, and financial operations</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hidden sm:flex items-center gap-3">
+                            <!-- Search Bar -->
+                            <div class="relative hidden sm:flex items-center bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 w-64">
+                                <i class="fas fa-search text-slate-400 text-sm mr-2"></i>
+                                <input type="text" placeholder="Search finance..." class="bg-transparent text-sm text-slate-600 placeholder-slate-400 focus:outline-none flex-1">
+                            </div>
+
+                            <!-- Notifications -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" title="Notifications" class="relative h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                                    <i class="fas fa-bell"></i>
+                                    <span x-show="unreadCount() > 0" x-text="unreadCount()" class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"></span>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                        <h3 class="font-semibold text-slate-800">Notifications</h3>
+                                        <div class="flex gap-2">
+                                            <button @click="notifications.forEach(n => n.read = true)" title="Mark all notifications as read" class="text-xs text-orange-500 hover:text-orange-600 font-medium">Read All</button>
+                                            <button @click="notifications = []" title="Clear all notifications" class="text-xs text-red-500 hover:text-red-600 font-medium">Clear</button>
+                                        </div>
+                                    </div>
+                                    <div class="max-h-96 overflow-y-auto">
+                                        <template x-if="notifications.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-bell text-slate-400"></i>
+                                                </div>
+                                                <div class="text-xs text-slate-400">No notifications yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">You're all caught up!</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="notification in notifications" :key="notification.id">
+                                            <div class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition cursor-pointer">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="h-2 w-2 rounded-full mt-2" :class="notification.read ? 'bg-slate-300' : 'bg-orange-500'"></div>
+                                                    <div class="flex-1">
+                                                        <div class="font-medium text-slate-800 text-sm" x-text="notification.title"></div>
+                                                        <div class="text-xs text-slate-500" x-text="notification.message"></div>
+                                                        <div class="text-slate-400 text-xs mt-1" x-text="notification.time"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Profile -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition">
+                                    <div class="h-8 w-8 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white">
+                                        <i class="fas fa-calculator text-sm"></i>
+                                    </div>
+                                    <div class="hidden sm:block text-left">
+                                        <div class="font-medium text-slate-800 text-sm">Accountant</div>
+                                        <div class="text-slate-500 text-xs">Accountant</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                                        <i class="fas fa-user text-slate-400"></i>
+                                        <span class="text-sm text-slate-700">Profile</span>
+                                    </a>
+                                    <button class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-500 transition">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span class="text-sm">Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stat Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                        <!-- Total Revenue Card -->
+                        <div class="bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-5 text-white shadow-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                                    <i class="fas fa-dollar-sign text-xl"></i>
+                                </div>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">0%</span>
+                            </div>
+                            <div class="text-2xl font-bold mb-1">ZMW 0</div>
+                            <div class="text-xs opacity-80">Total Revenue</div>
+                        </div>
+
+                        <!-- Total Expenses Card -->
+                        <div class="bg-gradient-to-br from-red-400 to-red-600 rounded-2xl p-5 text-white shadow-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                                    <i class="fas fa-receipt text-xl"></i>
+                                </div>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">0%</span>
+                            </div>
+                            <div class="text-2xl font-bold mb-1">ZMW 0</div>
+                            <div class="text-xs opacity-80">Total Expenses</div>
+                        </div>
+
+                        <!-- Pending Fees Card -->
+                        <div class="bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl p-5 text-white shadow-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                                    <i class="fas fa-clock text-xl"></i>
+                                </div>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">0 pending</span>
+                            </div>
+                            <div class="text-2xl font-bold mb-1">ZMW 0</div>
+                            <div class="text-xs opacity-80">Pending Fees</div>
+                        </div>
+
+                        <!-- Net Profit Card -->
+                        <div class="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-5 text-white shadow-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-xl"></i>
+                                </div>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">0%</span>
+                            </div>
+                            <div class="text-2xl font-bold mb-1">ZMW 0</div>
+                            <div class="text-xs opacity-80">Net Profit</div>
+                        </div>
+                    </div>
+
+                    <!-- Overall Data and Quick Actions -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                        <!-- Overall Financial Data -->
+                        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                            <h3 class="text-sm font-semibold text-slate-800 mb-4">Overall Financial Data</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="text-center">
+                                    <div class="text-lg font-semibold text-slate-800">0</div>
+                                    <div class="text-xs text-slate-500">Total Students</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-lg font-semibold text-slate-800">0</div>
+                                    <div class="text-xs text-slate-500">Active Fees</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-lg font-semibold text-slate-800">0</div>
+                                    <div class="text-xs text-slate-500">Paid Today</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-lg font-semibold text-slate-800">0</div>
+                                    <div class="text-xs text-slate-500">Overdue</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Mini Chart Area -->
+                            <div class="mt-6 p-4 bg-slate-50 rounded-xl">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-xs font-medium text-slate-600">Monthly Overview</span>
+                                    <span class="text-xs text-slate-400">Last 6 months</span>
+                                </div>
+                                <div class="flex items-end justify-between h-24 gap-2">
+                                    <div class="flex-1 bg-slate-200 rounded-t chart-bar-empty"></div>
+                                    <div class="flex-1 bg-slate-200 rounded-t chart-bar-empty"></div>
+                                    <div class="flex-1 bg-slate-200 rounded-t chart-bar-empty"></div>
+                                    <div class="flex-1 bg-slate-200 rounded-t chart-bar-empty"></div>
+                                    <div class="flex-1 bg-slate-200 rounded-t chart-bar-empty"></div>
+                                    <div class="flex-1 bg-slate-200 rounded-t chart-bar-empty"></div>
+                                </div>
+                                <div class="flex justify-between mt-2">
+                                    <span class="text-xs text-slate-400">Jan</span>
+                                    <span class="text-xs text-slate-400">Feb</span>
+                                    <span class="text-xs text-slate-400">Mar</span>
+                                    <span class="text-xs text-slate-400">Apr</span>
+                                    <span class="text-xs text-slate-400">May</span>
+                                    <span class="text-xs text-slate-400">Jun</span>
+                                </div>
+                                <div class="mt-3 text-center">
+                                    <span class="text-xs text-slate-400 italic">No data available yet</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                            <h3 class="text-sm font-semibold text-slate-800 mb-4">Quick Actions</h3>
+                            <div class="space-y-3">
+                                <button onclick="showAddFeeCollectionForm()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-600 transition">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span class="text-sm font-medium">Add Fee Collection</span>
+                                </button>
+                                <button onclick="generateInvoice()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 transition">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                    <span class="text-sm font-medium">Generate Invoice</span>
+                                </button>
+                                <button onclick="exportReport()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-green-50 hover:bg-green-100 text-green-600 transition">
+                                    <i class="fas fa-download"></i>
+                                    <span class="text-sm font-medium">Export Report</span>
+                                </button>
+                                <button onclick="sendReminders()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-600 transition">
+                                    <i class="fas fa-bell"></i>
+                                    <span class="text-sm font-medium">Send Reminders</span>
+                                </button>
+                                <a href="student-fees-directory.html" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 transition">
+                                    <i class="fas fa-users"></i>
+                                    <span class="text-sm font-medium">Student Fees Directory</span>
+                                </a>
+                                <button onclick="openSettings()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 transition">
+                                    <i class="fas fa-cog"></i>
+                                    <span class="text-sm font-medium">Settings</span>
+                                </button>
+                            </div>
+
+                            <!-- Recent Activity -->
+                            <div class="mt-6 pt-6 border-t border-slate-100">
+                                <h4 class="text-xs font-semibold text-slate-600 mb-3">Recent Activity</h4>
+                                <div class="space-y-2">
+                                    <div class="flex items-center gap-2 text-xs">
+                                        <div class="h-2 w-2 rounded-full bg-green-500"></div>
+                                        <span class="text-slate-500">No recent activity</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

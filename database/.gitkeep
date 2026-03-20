@@ -1,0 +1,2 @@
+# This file ensures the database directory is tracked by Git
+# Database files will be created when the server starts

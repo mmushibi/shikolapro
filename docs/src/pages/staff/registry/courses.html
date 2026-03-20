@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Course Registration</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="../../../../shared-assets/js/realtime-service.js"></script>
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+    <style>
+        /* Font family setup */
+        body {
+            font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Consistent font sizes */
+        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-sm { font-size: 0.825rem !important; line-height: 1.125rem !important; }
+        .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .text-lg { font-size: 0.925rem !important; line-height: 1.375rem !important; }
+        .text-xl { font-size: 0.975rem !important; line-height: 1.5rem !important; }
+        .text-2xl { font-size: 1.025rem !important; line-height: 1.625rem !important; }
+        .text-3xl { font-size: 1.075rem !important; line-height: 1.75rem !important; }
+
+        /* Override any larger font sizes */
+        .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+
+        /* Custom scrollbar to match app theme */
+        body, body * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        body::-webkit-scrollbar,
+        body *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        body::-webkit-scrollbar-track,
+        body *::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        body::-webkit-scrollbar-thumb,
+        body *::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #f97316, #ea580c);
+            border-radius: 9999px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover,
+        body *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ea580c, #c2410c);
+        }
+
+        /* Custom animations */
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Ensure consistent small text throughout */
+        h1 { font-size: 1.25rem !important; }
+        h2 { font-size: 1.125rem !important; }
+        h3 { font-size: 1rem !important; }
+        h4 { font-size: 0.925rem !important; }
+        h5 { font-size: 0.875rem !important; }
+        h6 { font-size: 0.825rem !important; }
+        
+        /* Input and button text sizes */
+        input, button, select, textarea {
+            font-size: 0.825rem !important;
+        }
+
+        /* Badge and label text */
+        .badge, .label {
+            font-size: 0.7rem !important;
+        }
+
+        /* Tab styles */
+        .tab-button {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to right, #f97316, #ea580c);
+            border-radius: 2px 2px 0 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        mobileSearchOpen: false,
+        mobileNotificationsOpen: false,
+        mobileProfileOpen: false,
+        mobileSearchQuery: '',
+        pageTitle: 'Course Management',
+        pageSubtitle: 'Manage academic courses and programs offered by the institution',
+        notifications: [],
+        
+        // Course Management data
+        courses: [],
+        showAddCourse: false,
+        newCourseName: '',
+        newCourseCode: '',
+        newCourseDepartment: '',
+        newCourseType: '',
+        newCourseDuration: '',
+        newCourseCredits: '',
+        searchQuery: '',
+        
+        // Bulk Import data
+        showBulkImport: false,
+        csvFile: null,
+        csvPreview: [],
+        isUploading: false,
+        uploadProgress: 0,
+        
+        // Course Management stats
+        totalCourses: 0,
+        activeCourses: 0,
+        draftCourses: 0,
+        archivedCourses: 0,
+        
+        // Global Registry Stats for sidebar
+        totalStudents: 0,
+        pendingApplications: 0,
+        activeEnrollmentsGlobal: 0,
+        
+        // Common methods
+        async init() {
+            await this.loadCourses();
+            this.loadSampleData();
+        },
+        
+        async loadCourses() {
+            try {
+                // Use real-time service to get data
+                this.courses = await window.realtimeService.getData('courses');
+                
+                // Subscribe to real-time updates
+                this.unsubscribeFromCourses = window.realtimeService.subscribe('courses', (update) => {
+                    if (update.type === 'data_update') {
+                        this.courses = update.data || this.courses;
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading courses:', error);
+            }
+        },
+        
+        loadSampleData() {
+            // Initialize empty arrays - no mock data
+        },
+        
+        // Course Management methods
+        async addCourse() {
+            console.log('Adding course');
+            if (this.newCourseName && this.newCourseCode && this.newCourseDepartment && this.newCourseType) {
+                try {
+                    const response = await fetch('/api/data/courses', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            name: this.newCourseName,
+                            code: this.newCourseCode,
+                            department: this.newCourseDepartment,
+                            type: this.newCourseType,
+                            duration: this.newCourseDuration,
+                            credits: this.newCourseCredits,
+                            status: 'Active',
+                            createdAt: new Date().toISOString().split('T')[0]
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.courses.unshift(result.data);
+                        this.newCourseName = '';
+                        this.newCourseCode = '';
+                        this.newCourseDepartment = '';
+                        this.newCourseType = '';
+                        this.newCourseDuration = '';
+                        this.newCourseCredits = '';
+                        this.showAddCourse = false;
+                        console.log('Course added successfully');
+                    } else {
+                        console.error('Failed to add course');
+                    }
+                } catch (error) {
+                    console.error('Error adding course:', error);
+                }
+            }
+        },
+        
+        deleteCourse(id) {
+            console.log('Deleting course:', id);
+            this.courses = this.courses.filter(c => c.id !== id);
+        },
+        
+        filteredCourses() {
+            if (this.searchQuery) {
+                return this.courses.filter(course => 
+                    course.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                    course.code.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                    course.department.toLowerCase().includes(this.searchQuery.toLowerCase())
+                );
+            }
+            return this.courses;
+        },
+        
+        unreadCount() {
+            return this.notifications.filter(n => !n.read).length;
+        },
+        
+        // Bulk Import methods
+        handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type === 'text/csv') {
+                this.csvFile = file;
+                this.parseCSV(file);
+            } else {
+                alert('Please upload a valid CSV file');
+            }
+        },
+        
+        parseCSV(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const text = e.target.result;
+                const lines = text.split('\n').filter(line => line.trim());
+                const headers = lines[0].split(',').map(h => h.trim());
+                
+                this.csvPreview = [];
+                for (let i = 1; i < Math.min(lines.length, 6); i++) {
+                    const values = lines[i].split(',').map(v => v.trim());
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index] || '';
+                    });
+                    this.csvPreview.push(row);
+                }
+            };
+            reader.readAsText(file);
+        },
+        
+        downloadCSVTemplate() {
+            const template = 'Course Name,Course Code,Department,Type,Duration,Credits,Status\nElectrical Engineering,EE101,Engineering,Degree,4 Years,120,Active\nInformation Technology,IT201,Computing,Diploma,2 Years,60,Active';
+            const blob = new Blob([template], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'courses_import_template.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        },
+        
+        async importCSV() {
+            if (!this.csvFile) return;
+            
+            this.isUploading = true;
+            this.uploadProgress = 0;
+            
+            try {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const text = e.target.result;
+                    const lines = text.split('\n').filter(line => line.trim());
+                    const headers = lines[0].split(',').map(h => h.trim());
+                    
+                    const courses = [];
+                    for (let i = 1; i < lines.length; i++) {
+                        const values = lines[i].split(',').map(v => v.trim());
+                        const course = {
+                            id: Date.now() + i,
+                            name: values[0] || '',
+                            code: values[1] || '',
+                            department: values[2] || '',
+                            type: values[3] || 'Certificate',
+                            duration: values[4] || '',
+                            credits: values[5] || '',
+                            status: values[6] || 'Active',
+                            createdDate: new Date().toISOString().split('T')[0]
+                        };
+                        courses.push(course);
+                        
+                        // Update progress
+                        this.uploadProgress = Math.round((i / (lines.length - 1)) * 100);
+                    }
+                    
+                    // Add all courses
+                    this.courses.unshift(...courses);
+                    
+                    // Reset form
+                    setTimeout(() => {
+                        this.showBulkImport = false;
+                        this.csvFile = null;
+                        this.csvPreview = [];
+                        this.isUploading = false;
+                        this.uploadProgress = 0;
+                        console.log(`Successfully imported ${courses.length} courses`);
+                    }, 1000);
+                };
+                reader.readAsText(this.csvFile);
+            } catch (error) {
+                console.error('Error importing CSV:', error);
+                this.isUploading = false;
+            }
+        }
+    }" x-init="init()" class="min-h-screen flex">
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Registry Dashboard</span>
+                        </a>
+                        <a href="admissions.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-plus"></i>
+                            </span>
+                            <span class="flex-1">Admissions</span>
+                        </a>
+                        <a href="students.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-users"></i>
+                            </span>
+                            <span class="flex-1">Student Records</span>
+                        </a>
+                        <a href="courses.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-book"></i>
+                            </span>
+                            <span class="font-medium flex-1">Course Management</span>
+                        </a>
+                        <a href="grades.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-line"></i>
+                            </span>
+                            <span class="flex-1">Academic Records</span>
+                        </a>
+                        <a href="transcripts.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-file-alt"></i>
+                            </span>
+                            <span class="flex-1">Transcripts</span>
+                        </a>
+                        <a href="certificates.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-certificate"></i>
+                            </span>
+                            <span class="flex-1">Certificates</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="flex-1">Settings</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Registry Stats -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Registry Stats</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Total Students</span>
+                                <span class="font-medium" x-text="totalStudents">0</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Pending Applications</span>
+                                <span class="font-medium" x-text="pendingApplications">0</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Active Enrollments</span>
+                                <span class="font-medium" x-text="activeEnrollmentsGlobal">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                    <nav class="nav-menu space-y-1 text-sm">
+                        <div class="pt-4">
+                            <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-home"></i>
+                                </span>
+                                <span class="flex-1">Registry Dashboard</span>
+                            </a>
+                            <a href="admissions.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-user-plus"></i>
+                                </span>
+                                <span class="flex-1">Admissions</span>
+                            </a>
+                            <a href="courses.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-book"></i>
+                                </span>
+                                <span class="font-medium flex-1">Course Management</span>
+                            </a>
+                            <a href="grades.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-chart-line"></i>
+                                </span>
+                                <span class="flex-1">Academic Records</span>
+                            </a>
+                            <a href="transcripts.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-file-alt"></i>
+                                </span>
+                                <span class="flex-1">Transcripts</span>
+                            </a>
+                            <a href="certificates.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-certificate"></i>
+                                </span>
+                                <span class="flex-1">Certificates</span>
+                            </a>
+                            <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-chart-bar"></i>
+                                </span>
+                                <span class="flex-1">Reports</span>
+                            </a>
+                            <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-cog"></i>
+                                </span>
+                                <span class="flex-1">Settings</span>
+                            </a>
+                        </div>
+                    </nav>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7 h-full flex flex-col">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-100 pb-3">
+                        <div class="flex items-center justify-center w-full lg:w-auto lg:justify-start gap-3">
+                            <button type="button" @click="sidebarOpen = true" class="lg:hidden fixed top-4 left-4 z-50 h-9 w-9 rounded-xl bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="relative">
+                                <img src="../../../../public/images/logo.png" alt="Shikola Pro" class="h-14 w-auto rounded-2xl lg:hidden">
+                                <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                            </div>
+                            <div class="hidden lg:block">
+                                <h1 class="text-2xl sm:text-3xl font-semibold text-slate-800">Course Management</h1>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1 hidden sm:block">Manage academic courses and programs offered by the institution</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hidden sm:flex items-center gap-3">
+                            <!-- Search Bar -->
+                            <div class="relative hidden sm:flex items-center bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 w-64">
+                                <i class="fas fa-search text-slate-400 text-sm mr-2"></i>
+                                <input type="text" x-model="searchQuery" placeholder="Search courses..." class="bg-transparent text-sm text-slate-600 placeholder-slate-400 focus:outline-none flex-1">
+                            </div>
+
+                            <!-- Notifications -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="relative h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                                    <i class="fas fa-bell"></i>
+                                    <span x-show="unreadCount() > 0" x-text="unreadCount()" class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"></span>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                        <h3 class="font-semibold text-slate-800">Notifications</h3>
+                                        <div class="flex gap-2">
+                                            <button @click="notifications.forEach(n => n.read = true)" class="text-xs text-orange-500 hover:text-orange-600 font-medium">Read All</button>
+                                            <button @click="notifications = []" class="text-xs text-red-500 hover:text-red-600 font-medium">Clear</button>
+                                        </div>
+                                    </div>
+                                    <div class="max-h-96 overflow-y-auto">
+                                        <template x-if="notifications.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-bell text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No notifications yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">You're all caught up!</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="notification in notifications" :key="notification.id">
+                                            <div class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition cursor-pointer">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="h-2 w-2 rounded-full mt-2" :class="notification.read ? 'bg-slate-300' : 'bg-orange-500'"></div>
+                                                    <div class="flex-1">
+                                                        <div class="font-medium text-slate-800 text-sm" x-text="notification.title"></div>
+                                                        <div class="text-slate-500 text-xs mt-1" x-text="notification.message"></div>
+                                                        <div class="text-slate-400 text-xs mt-1" x-text="notification.time"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Profile -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition">
+                                    <div class="h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white">
+                                        <i class="fas fa-user-graduate text-sm"></i>
+                                    </div>
+                                    <div class="hidden sm:block text-left">
+                                        <div class="font-medium text-slate-800 text-sm">Registry Staff</div>
+                                        <div class="text-slate-500 text-xs">Academic Registry</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                                        <i class="fas fa-user text-slate-400"></i>
+                                        <span class="text-sm text-slate-700">Profile</span>
+                                    </a>
+                                    <button class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-500 transition">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span class="text-sm">Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Content -->
+                    <div class="flex-1 overflow-y-auto">
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                                        <i class="fas fa-book text-xl"></i>
+                                    </div>
+                                    <div class="text-xs opacity-75">Total</div>
+                                </div>
+                                <div class="text-2xl font-bold mb-1" x-text="totalCourses">0</div>
+                                <div class="text-xs opacity-90">Courses</div>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-5 text-white shadow-lg">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                                        <i class="fas fa-check-circle text-xl"></i>
+                                    </div>
+                                    <div class="text-xs opacity-75">Active</div>
+                                </div>
+                                <div class="text-2xl font-bold mb-1" x-text="activeCourses">0</div>
+                                <div class="text-xs opacity-90">Available</div>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl p-5 text-white shadow-lg">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                                        <i class="fas fa-edit text-xl"></i>
+                                    </div>
+                                    <div class="text-xs opacity-75">Draft</div>
+                                </div>
+                                <div class="text-2xl font-bold mb-1" x-text="draftCourses">0</div>
+                                <div class="text-xs opacity-90">In Progress</div>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                                        <i class="fas fa-archive text-xl"></i>
+                                    </div>
+                                    <div class="text-xs opacity-75">Archived</div>
+                                </div>
+                                <div class="text-2xl font-bold mb-1" x-text="archivedCourses">0</div>
+                                <div class="text-xs opacity-90">Retired</div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="mt-6">
+                            <h3 class="text-sm font-semibold text-slate-800 mb-4">Quick Actions</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <button @click="showAddCourse = !showAddCourse" class="group bg-white rounded-xl border border-slate-100 p-4 hover:shadow-md transition-all duration-200 hover:border-orange-200">
+                                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center text-white mb-3 group-hover:scale-110 transition">
+                                        <i class="fas fa-plus"></i>
+                                    </div>
+                                    <div class="text-sm font-medium text-slate-800">Add Course</div>
+                                    <div class="text-xs text-slate-500 mt-1">New program</div>
+                                </button>
+                                
+                                <button @click="showBulkImport = true" class="group bg-white rounded-xl border border-slate-100 p-4 hover:shadow-md transition-all duration-200 hover:border-orange-200">
+                                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center text-white mb-3 group-hover:scale-110 transition">
+                                        <i class="fas fa-upload"></i>
+                                    </div>
+                                    <div class="text-sm font-medium text-slate-800">Bulk Import</div>
+                                    <div class="text-xs text-slate-500 mt-1">Multiple courses</div>
+                                </button>
+                                
+                                <button class="group bg-white rounded-xl border border-slate-100 p-4 hover:shadow-md transition-all duration-200 hover:border-orange-200">
+                                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center text-white mb-3 group-hover:scale-110 transition">
+                                        <i class="fas fa-download"></i>
+                                    </div>
+                                    <div class="text-sm font-medium text-slate-800">Export</div>
+                                    <div class="text-xs text-slate-500 mt-1">Download data</div>
+                                </button>
+                                
+                                <button class="group bg-white rounded-xl border border-slate-100 p-4 hover:shadow-md transition-all duration-200 hover:border-orange-200">
+                                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white mb-3 group-hover:scale-110 transition">
+                                        <i class="fas fa-cog"></i>
+                                    </div>
+                                    <div class="text-sm font-medium text-slate-800">Settings</div>
+                                    <div class="text-xs text-slate-500 mt-1">Manage options</div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Add Course Form -->
+                        <div x-show="showAddCourse" x-transition class="mt-6">
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                <h3 class="text-sm font-semibold text-slate-800 mb-4">Add New Course</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    <input x-model="newCourseName" type="text" placeholder="Course name" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                    <input x-model="newCourseCode" type="text" placeholder="Course code" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                    <select x-model="newCourseDepartment" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <option value="">Select Department</option>
+                                        <option value="Engineering">Engineering</option>
+                                        <option value="Computing">Computing</option>
+                                        <option value="Business">Business</option>
+                                        <option value="Science">Science</option>
+                                        <option value="Arts">Arts</option>
+                                        <option value="Medicine">Medicine</option>
+                                    </select>
+                                    <select x-model="newCourseType" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <option value="">Select Type</option>
+                                        <option value="Trade Certificate">Trade Certificate</option>
+                                        <option value="Craft Certificate">Craft Certificate</option>
+                                        <option value="Certificate">Certificate</option>
+                                        <option value="Diploma">Diploma</option>
+                                        <option value="Degree">Degree</option>
+                                        <option value="Masters">Masters</option>
+                                        <option value="PhD">PhD</option>
+                                    </select>
+                                    <input x-model="newCourseDuration" type="text" placeholder="Duration (e.g., 4 Years)" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                    <input x-model="newCourseCredits" type="text" placeholder="Credits (e.g., 120)" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                </div>
+                                <div class="flex gap-2 mt-3">
+                                    <button @click="addCourse()" class="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition">
+                                        Add Course
+                                    </button>
+                                    <button @click="showAddCourse = false; newCourseName = ''; newCourseCode = ''; newCourseDepartment = ''; newCourseType = ''; newCourseDuration = ''; newCourseCredits = ''" class="px-3 py-1.5 bg-slate-200 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-300 transition">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div x-show="showBulkImport" x-transition class="mt-6">
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-sm font-semibold text-slate-800 mb-4">Bulk Import Courses</h3>
+                                    <button @click="showBulkImport = false; csvFile = null; csvPreview = []" class="text-slate-400 hover:text-slate-600">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Instructions -->
+                                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                                    <h4 class="font-medium text-blue-800 text-sm mb-2">Instructions:</h4>
+                                    <ul class="text-xs text-blue-700 space-y-1">
+                                        <li>• Upload a CSV file with course data</li>
+                                        <li>• Required columns: Course Name, Course Code, Department, Type, Duration, Credits, Status</li>
+                                        <li>• Type options: Certificate, Diploma, Degree, Masters, PhD</li>
+                                        <li>• Status options: Active, Draft, Archived</li>
+                                        <li>• Download the template below for reference</li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- Download Template -->
+                                <div class="mb-4">
+                                    <button @click="downloadCSVTemplate()" class="flex items-center gap-2 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-200 transition">
+                                        <i class="fas fa-download"></i>
+                                        Download CSV Template
+                                    </button>
+                                </div>
+                                
+                                <!-- File Upload -->
+                                <div class="mb-4">
+                                    <label class="block text-xs font-medium text-slate-700 mb-2">Upload CSV File</label>
+                                    <div class="relative">
+                                        <input type="file" 
+                                               accept=".csv" 
+                                               @change="handleFileUpload($event)"
+                                               class="hidden" 
+                                               id="csv-upload">
+                                        <label for="csv-upload" 
+                                               class="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-orange-400 transition">
+                                            <div class="text-center">
+                                                <i class="fas fa-cloud-upload-alt text-3xl text-slate-400 mb-2"></i>
+                                                <div class="text-sm text-slate-600" x-text="csvFile ? csvFile.name : 'Click to upload or drag and drop'"></div>
+                                                <div class="text-xs text-slate-400 mt-1">CSV files only</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Preview -->
+                                <div x-show="csvPreview.length > 0" class="mb-4">
+                                    <h4 class="font-medium text-slate-800 text-sm mb-2">Preview (first 5 rows):</h4>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-xs">
+                                            <thead>
+                                                <tr class="bg-slate-50">
+                                                    <th class="px-2 py-1 text-left text-slate-600">Course Name</th>
+                                                    <th class="px-2 py-1 text-left text-slate-600">Course Code</th>
+                                                    <th class="px-2 py-1 text-left text-slate-600">Department</th>
+                                                    <th class="px-2 py-1 text-left text-slate-600">Type</th>
+                                                    <th class="px-2 py-1 text-left text-slate-600">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template x-for="row in csvPreview" :key="row">
+                                                    <tr class="border-t border-slate-100">
+                                                        <td class="px-2 py-1 text-slate-700" x-text="row['Course Name'] || ''"></td>
+                                                        <td class="px-2 py-1 text-slate-700" x-text="row['Course Code'] || ''"></td>
+                                                        <td class="px-2 py-1 text-slate-700" x-text="row['Department'] || ''"></td>
+                                                        <td class="px-2 py-1 text-slate-700" x-text="row['Type'] || ''"></td>
+                                                        <td class="px-2 py-1">
+                                                            <span class="text-xs px-2 py-1 rounded-full" 
+                                                                  :class="row['Status'] === 'Active' ? 'bg-green-100 text-green-600' : row['Status'] === 'Archived' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-600'"
+                                                                  x-text="row['Status'] || ''"></span>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <!-- Progress -->
+                                <div x-show="isUploading" class="mb-4">
+                                    <div class="flex items-center justify-between text-xs text-slate-600 mb-1">
+                                        <span>Importing...</span>
+                                        <span x-text="uploadProgress + '%'"></span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 rounded-full h-2">
+                                        <div class="bg-gradient-to-r from-orange-400 to-orange-500 h-2 rounded-full transition-all duration-300" 
+                                             :style="`width: ${uploadProgress}%`"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Actions -->
+                                <div class="flex gap-2">
+                                    <button @click="importCSV()" 
+                                            :disabled="!csvFile || isUploading"
+                                            class="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <i class="fas fa-upload mr-1"></i>
+                                        Import Courses
+                                    </button>
+                                    <button @click="showBulkImport = false; csvFile = null; csvPreview = []" 
+                                            :disabled="isUploading"
+                                            class="px-3 py-1.5 bg-slate-200 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-300 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Courses List -->
+                        <div class="mt-6">
+                            <h3 class="text-sm font-semibold text-slate-800 mb-4">Available Courses</h3>
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                <div class="space-y-3">
+                                    <template x-if="filteredCourses().length === 0">
+                                        <div class="px-4 py-8 text-center">
+                                            <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                <i class="fas fa-book text-slate-400"></i>
+                                            </div>
+                                            <div class="text-sm text-slate-500">No courses available</div>
+                                            <div class="text-xs text-slate-400 mt-1">Add your first course to get started</div>
+                                        </div>
+                                    </template>
+                                    <template x-for="course in filteredCourses()" :key="course.id">
+                                        <div class="relative group flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition">
+                                            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center text-white">
+                                                <i class="fas fa-book"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="font-medium text-slate-800 text-sm" x-text="course.name"></div>
+                                                <div class="text-xs text-slate-500" x-text="course.code + ' • ' + course.department"></div>
+                                                <div class="flex gap-3 mt-1">
+                                                    <span class="text-xs text-slate-400" x-text="course.type + ' • ' + (course.duration || 'N/A')"></span>
+                                                    <span class="text-xs px-2 py-1 rounded-full" :class="course.status === 'Active' ? 'bg-green-100 text-green-600' : course.status === 'Archived' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-600'" x-text="course.status"></span>
+                                                    <span class="text-xs text-slate-400" x-text="course.credits ? course.credits + ' credits' : ''"></span>
+                                                </div>
+                                            </div>
+                                            <button @click="deleteCourse(course.id)" class="opacity-0 group-hover:opacity-100 transition h-6 w-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center text-xs">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

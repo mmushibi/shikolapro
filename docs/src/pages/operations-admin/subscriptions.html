@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Subscriptions Management</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+    <style>
+        /* Font family setup */
+        body {
+            font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Consistent font sizes */
+        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-sm { font-size: 0.825rem !important; line-height: 1.125rem !important; }
+        .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .text-lg { font-size: 0.925rem !important; line-height: 1.375rem !important; }
+        .text-xl { font-size: 0.975rem !important; line-height: 1.5rem !important; }
+        .text-2xl { font-size: 1.025rem !important; line-height: 1.625rem !important; }
+        .text-3xl { font-size: 1.075rem !important; line-height: 1.75rem !important; }
+
+        /* Override any larger font sizes */
+        .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+
+        /* Custom scrollbar to match app theme */
+        body, body * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        body::-webkit-scrollbar,
+        body *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        body::-webkit-scrollbar-track,
+        body *::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        body::-webkit-scrollbar-thumb,
+        body *::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #f97316, #ea580c);
+            border-radius: 9999px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover,
+        body *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ea580c, #c2410c);
+        }
+
+        /* Custom animations */
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Ensure consistent small text throughout */
+        h1 { font-size: 1.25rem !important; }
+        h2 { font-size: 1.125rem !important; }
+        h3 { font-size: 1rem !important; }
+        h4 { font-size: 0.925rem !important; }
+        h5 { font-size: 0.875rem !important; }
+        h6 { font-size: 0.825rem !important; }
+        
+        /* Input and button text sizes */
+        input, button, select, textarea {
+            font-size: 0.825rem !important;
+        }
+
+        /* Badge and label text */
+        .badge, .label {
+            font-size: 0.7rem !important;
+        }
+
+        /* Subscription status styles */
+        .subscription-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .status-active {
+            background: linear-gradient(to right, #10b981, #059669);
+            color: white;
+        }
+
+        .status-inactive {
+            background: linear-gradient(to right, #6b7280, #4b5563);
+            color: white;
+        }
+
+        .status-trial {
+            background: linear-gradient(to right, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .status-expired {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .status-cancelled {
+            background: linear-gradient(to right, #f59e0b, #d97706);
+            color: white;
+        }
+
+        /* Subscription plan styles */
+        .plan-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .plan-basic {
+            background: linear-gradient(to right, #06b6d4, #0891b2);
+            color: white;
+        }
+
+        .plan-premium {
+            background: linear-gradient(to right, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        .plan-enterprise {
+            background: linear-gradient(to right, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .plan-custom {
+            background: linear-gradient(to right, #10b981, #059669);
+            color: white;
+        }
+
+        /* Subscription card styles */
+        .subscription-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .subscription-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-color: #f97316;
+        }
+
+        /* Table styles */
+        .table-row-hover:hover {
+            background-color: #f8fafc;
+            transition: background-color 0.2s ease;
+        }
+
+        /* Modal styles */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            height: 0.5rem;
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #f97316, #ea580c);
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        mobileSearchOpen: false,
+        mobileNotificationsOpen: false,
+        mobileProfileOpen: false,
+        mobileSearchQuery: '',
+        pageTitle: 'Subscriptions Management',
+        pageSubtitle: 'Manage customer subscriptions and billing plans',
+        notifications: [],
+        
+        // Subscriptions data
+        subscriptions: [],
+        showAddSubscription: false,
+        showEditSubscription: false,
+        showSubscriptionDetails: false,
+        selectedSubscription: null,
+        viewMode: 'grid', // 'grid' or 'table'
+        
+        // Form data
+        newSubscriptionName: '',
+        newSubscriptionPlan: '',
+        newSubscriptionCustomer: '',
+        newSubscriptionAmount: '',
+        newSubscriptionBillingCycle: 'monthly',
+        newSubscriptionStatus: 'active',
+        newSubscriptionStartDate: '',
+        newSubscriptionEndDate: '',
+        
+        // Filters
+        filterPlan: 'all',
+        filterStatus: 'all',
+        filterBillingCycle: 'all',
+        searchQuery: '',
+        
+        // Pagination
+        currentPage: 1,
+        itemsPerPage: 9,
+        
+        // Common methods
+        init() {
+            this.loadSampleData();
+        },
+        
+        loadSampleData() {
+            // Initialize empty arrays - no mock data
+        },
+        
+        // Subscription methods
+        addSubscription() {
+            console.log('Adding subscription:', this.newSubscriptionName);
+            if (this.newSubscriptionName && this.newSubscriptionPlan && this.newSubscriptionCustomer && this.newSubscriptionAmount) {
+                this.subscriptions.unshift({
+                    id: Date.now(),
+                    name: this.newSubscriptionName,
+                    plan: this.newSubscriptionPlan,
+                    customer: this.newSubscriptionCustomer,
+                    amount: this.newSubscriptionAmount,
+                    billingCycle: this.newSubscriptionBillingCycle,
+                    status: this.newSubscriptionStatus,
+                    startDate: this.newSubscriptionStartDate || new Date().toISOString().split('T')[0],
+                    endDate: this.newSubscriptionEndDate,
+                    createdDate: new Date().toISOString().split('T')[0],
+                    createdTime: new Date().toTimeString().split(' ')[0],
+                    createdBy: 'Current User'
+                });
+                this.resetSubscriptionForm();
+                this.showAddSubscription = false;
+                this.showSuccessMessage('Subscription added successfully');
+            }
+        },
+        
+        editSubscription() {
+            console.log('Editing subscription:', this.selectedSubscription?.id);
+            if (this.selectedSubscription && this.newSubscriptionName && this.newSubscriptionPlan && this.newSubscriptionCustomer && this.newSubscriptionAmount) {
+                const index = this.subscriptions.findIndex(s => s.id === this.selectedSubscription.id);
+                if (index !== -1) {
+                    this.subscriptions[index] = {
+                        ...this.subscriptions[index],
+                        name: this.newSubscriptionName,
+                        plan: this.newSubscriptionPlan,
+                        customer: this.newSubscriptionCustomer,
+                        amount: this.newSubscriptionAmount,
+                        billingCycle: this.newSubscriptionBillingCycle,
+                        status: this.newSubscriptionStatus,
+                        startDate: this.newSubscriptionStartDate,
+                        endDate: this.newSubscriptionEndDate,
+                        lastModified: new Date().toISOString().split('T')[0]
+                    };
+                    this.resetSubscriptionForm();
+                    this.showEditSubscription = false;
+                    this.selectedSubscription = null;
+                    this.showSuccessMessage('Subscription updated successfully');
+                }
+            }
+        },
+        
+        deleteSubscription(subscription) {
+            console.log('Deleting subscription:', subscription.id);
+            this.subscriptions = this.subscriptions.filter(s => s.id !== subscription.id);
+            this.showSuccessMessage('Subscription deleted successfully');
+        },
+        
+        viewSubscriptionDetails(subscription) {
+            this.selectedSubscription = subscription;
+            this.showSubscriptionDetails = true;
+        },
+        
+        renewSubscription(subscription) {
+            console.log('Renewing subscription:', subscription.id);
+            subscription.status = 'active';
+            subscription.endDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            this.showSuccessMessage('Subscription renewed successfully');
+        },
+        
+        cancelSubscription(subscription) {
+            console.log('Cancelling subscription:', subscription.id);
+            subscription.status = 'cancelled';
+            this.showSuccessMessage('Subscription cancelled successfully');
+        },
+        
+        resetSubscriptionForm() {
+            this.newSubscriptionName = '';
+            this.newSubscriptionPlan = '';
+            this.newSubscriptionCustomer = '';
+            this.newSubscriptionAmount = '';
+            this.newSubscriptionBillingCycle = 'monthly';
+            this.newSubscriptionStatus = 'active';
+            this.newSubscriptionStartDate = '';
+            this.newSubscriptionEndDate = '';
+        },
+        
+        // Filter methods
+        filteredSubscriptions() {
+            return this.subscriptions.filter(subscription => {
+                const matchesPlan = this.filterPlan === 'all' || subscription.plan === this.filterPlan;
+                const matchesStatus = this.filterStatus === 'all' || subscription.status === this.filterStatus;
+                const matchesBillingCycle = this.filterBillingCycle === 'all' || subscription.billingCycle === this.filterBillingCycle;
+                const matchesSearch = this.searchQuery === '' || 
+                    subscription.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                    subscription.customer.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                    subscription.plan.toLowerCase().includes(this.searchQuery.toLowerCase());
+                return matchesPlan && matchesStatus && matchesBillingCycle && matchesSearch;
+            });
+        },
+        
+        paginatedSubscriptions() {
+            const filtered = this.filteredSubscriptions();
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            const end = start + this.itemsPerPage;
+            return filtered.slice(start, end);
+        },
+        
+        totalPages() {
+            return Math.ceil(this.filteredSubscriptions().length / this.itemsPerPage);
+        },
+        
+        // Utility methods
+        unreadCount() {
+            return this.notifications.filter(n => !n.read).length;
+        },
+        
+        showSuccessMessage(message) {
+            this.notifications.unshift({
+                id: Date.now(),
+                title: 'Success',
+                message: message,
+                time: 'Just now',
+                read: false,
+                type: 'success'
+            });
+        },
+        
+        getTotalSubscriptions() {
+            return this.subscriptions.length;
+        },
+        
+        getSubscriptionsByPlan(plan) {
+            return this.subscriptions.filter(s => s.plan === plan).length;
+        },
+        
+        getSubscriptionsByStatus(status) {
+            return this.subscriptions.filter(s => s.status === status).length;
+        },
+        
+        getTotalRevenue() {
+            return this.subscriptions
+                .filter(s => s.status === 'active')
+                .reduce((total, subscription) => {
+                    const amount = parseFloat(subscription.amount) || 0;
+                    return total + amount;
+                }, 0).toFixed(2);
+        },
+        
+        getPlanColor(plan) {
+            switch(plan) {
+                case 'basic': return 'plan-basic';
+                case 'premium': return 'plan-premium';
+                case 'enterprise': return 'plan-enterprise';
+                case 'custom': return 'plan-custom';
+                default: return 'plan-basic';
+            }
+        },
+        
+        getStatusColor(status) {
+            switch(status) {
+                case 'active': return 'status-active';
+                case 'inactive': return 'status-inactive';
+                case 'trial': return 'status-trial';
+                case 'expired': return 'status-expired';
+                case 'cancelled': return 'status-cancelled';
+                default: return 'status-inactive';
+            }
+        },
+        
+        formatCurrency(amount) {
+            return new Intl.NumberFormat('en-ZM', {
+                style: 'currency',
+                currency: 'ZMW'
+            }).format(amount);
+        }
+    }" x-init="init()" class="min-h-screen flex">
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-credit-card"></i>
+                            </span>
+                            <span class="font-medium flex-1">Subscriptions</span>
+                        </a>
+                        <a href="customer-care.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-headset"></i>
+                            </span>
+                            <span class="flex-1">Customer Care</span>
+                        </a>
+                        <a href="billing.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </span>
+                            <span class="flex-1">Billing & Invoices</span>
+                        </a>
+                        <a href="analytics.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-line"></i>
+                            </span>
+                            <span class="flex-1">Analytics</span>
+                        </a>
+                        <a href="system-health.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-heartbeat"></i>
+                            </span>
+                            <span class="flex-1">System Health</span>
+                        </a>
+                        <a href="audit-logs.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-history"></i>
+                            </span>
+                            <span class="flex-1">Audit Logs</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-file-alt"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="flex-1">Settings</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Operations Stats -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Operations Overview</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Total Subscriptions</span>
+                                <span class="font-medium" x-text="getTotalSubscriptions()"></span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">System Health</span>
+                                <span class="font-medium">Optimal</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                    <nav class="nav-menu space-y-1 text-sm">
+                        <div class="pt-4">
+                            <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-home"></i>
+                                </span>
+                                <span class="flex-1">Home</span>
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-credit-card"></i>
+                                </span>
+                                <span class="font-medium flex-1">Subscriptions</span>
+                            </a>
+                            <a href="customer-care.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-headset"></i>
+                                </span>
+                                <span class="flex-1">Customer Care</span>
+                            </a>
+                            <a href="billing.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                </span>
+                                <span class="flex-1">Billing & Invoices</span>
+                            </a>
+                            <a href="analytics.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-chart-line"></i>
+                                </span>
+                                <span class="flex-1">Analytics</span>
+                            </a>
+                            <a href="system-health.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-heartbeat"></i>
+                                </span>
+                                <span class="flex-1">System Health</span>
+                            </a>
+                            <a href="audit-logs.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-history"></i>
+                                </span>
+                                <span class="flex-1">Audit Logs</span>
+                            </a>
+                            <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-file-alt"></i>
+                                </span>
+                                <span class="flex-1">Reports</span>
+                            </a>
+                            <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-cog"></i>
+                                </span>
+                                <span class="flex-1">Settings</span>
+                            </a>
+                        </div>
+                    </nav>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7 h-full flex flex-col">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-100 pb-3">
+                        <div class="flex items-center justify-center w-full lg:w-auto lg:justify-start gap-3">
+                            <button type="button" @click="sidebarOpen = true" class="lg:hidden fixed top-4 left-4 z-50 h-9 w-9 rounded-xl bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="relative">
+                                <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-14 w-auto rounded-2xl lg:hidden">
+                                <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                            </div>
+                            <div class="hidden lg:block">
+                                <h1 class="text-2xl sm:text-3xl font-semibold text-slate-800">Subscriptions Management</h1>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1 hidden sm:block">Manage customer subscriptions and billing plans</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hidden sm:flex items-center gap-3">
+                            <!-- Search Bar -->
+                            <div class="relative hidden sm:flex items-center bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 w-64">
+                                <i class="fas fa-search text-slate-400 text-sm mr-2"></i>
+                                <input type="text" x-model="searchQuery" placeholder="Search subscriptions..." class="bg-transparent text-sm text-slate-600 placeholder-slate-400 focus:outline-none flex-1">
+                            </div>
+
+                            <!-- Notifications -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="relative h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                                    <i class="fas fa-bell"></i>
+                                    <span x-show="unreadCount() > 0" x-text="unreadCount()" class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"></span>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                        <h3 class="font-semibold text-slate-800">Notifications</h3>
+                                        <div class="flex gap-2">
+                                            <button @click="notifications.forEach(n => n.read = true)" class="text-xs text-orange-500 hover:text-orange-600 font-medium">Read All</button>
+                                            <button @click="notifications = []" class="text-xs text-red-500 hover:text-red-600 font-medium">Clear</button>
+                                        </div>
+                                    </div>
+                                    <div class="max-h-96 overflow-y-auto">
+                                        <template x-if="notifications.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-bell text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No notifications yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">You're all caught up!</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="notification in notifications" :key="notification.id">
+                                            <div class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition cursor-pointer">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="h-2 w-2 rounded-full mt-2" :class="notification.read ? 'bg-slate-300' : 'bg-orange-500'"></div>
+                                                    <div class="flex-1">
+                                                        <div class="font-medium text-slate-800 text-sm" x-text="notification.title"></div>
+                                                        <div class="text-slate-500 text-xs mt-1" x-text="notification.message"></div>
+                                                        <div class="text-slate-400 text-xs mt-1" x-text="notification.time"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Profile -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition">
+                                    <div class="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white">
+                                        <i class="fas fa-chart-line text-sm"></i>
+                                    </div>
+                                    <div class="hidden sm:block text-left">
+                                        <div class="font-medium text-slate-800 text-sm">Operations Admin</div>
+                                        <div class="text-slate-500 text-xs">Operations Manager</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                                        <i class="fas fa-user text-slate-400"></i>
+                                        <span class="text-sm text-slate-700">Profile</span>
+                                    </a>
+                                    <button class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-500 transition">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span class="text-sm">Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 lg:gap-6 mt-6">
+                        <div class="rounded-2xl bg-gradient-to-tr from-orange-400 to-orange-500 text-white p-5 flex items-center justify-between shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-orange-100/90">Total Subscriptions</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none" x-text="getTotalSubscriptions()"></div>
+                                <div class="mt-1 text-xs text-orange-100/80">All subscriptions</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-credit-card text-xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-2xl bg-gradient-to-tr from-green-400 to-emerald-500 text-white p-5 flex items-center justify-between shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-green-100/90">Active Subscriptions</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none" x-text="getSubscriptionsByStatus('active')"></div>
+                                <div class="mt-1 text-xs text-green-100/80">Currently active</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-2xl bg-gradient-to-tr from-blue-400 to-indigo-500 text-white p-5 flex items-center justify-between shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-blue-100/90">Monthly Revenue</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none" x-text="formatCurrency(getTotalRevenue())"></div>
+                                <div class="mt-1 text-xs text-blue-100/80">ZMW per month</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-dollar-sign text-xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-2xl bg-gradient-to-tr from-purple-400 to-pink-500 text-white p-5 flex items-center justify-between shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-purple-100/90">Premium Plans</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none" x-text="getSubscriptionsByPlan('premium')"></div>
+                                <div class="mt-1 text-xs text-purple-100/80">Premium tier</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-crown text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters and Actions -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mt-6">
+                        <div class="flex flex-wrap gap-3">
+                            <select x-model="filterPlan" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="all">All Plans</option>
+                                <option value="basic">Basic</option>
+                                <option value="premium">Premium</option>
+                                <option value="enterprise">Enterprise</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                            
+                            <select x-model="filterStatus" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="trial">Trial</option>
+                                <option value="expired">Expired</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            
+                            <select x-model="filterBillingCycle" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="all">All Billing Cycles</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                            
+                            <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
+                                <button @click="viewMode = 'grid'" 
+                                        :class="viewMode === 'grid' ? 'text-orange-600' : 'text-slate-400'"
+                                        class="p-1 hover:text-orange-600 transition"
+                                        title="Grid View">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                                <button @click="viewMode = 'table'" 
+                                        :class="viewMode === 'table' ? 'text-orange-600' : 'text-slate-400'"
+                                        class="p-1 hover:text-orange-600 transition"
+                                        title="Table View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button @click="showAddSubscription = true" class="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl hover:from-orange-500 hover:to-orange-600 transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
+                            <i class="fas fa-plus"></i>
+                            <span class="text-sm font-medium">Add Subscription</span>
+                        </button>
+                    </div>
+
+                    <!-- Subscriptions Content -->
+                    <div class="flex-1 overflow-hidden mt-6">
+                        <div class="h-full overflow-y-auto">
+                            <!-- Grid View -->
+                            <template x-if="viewMode === 'grid'">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                                    <template x-if="paginatedSubscriptions().length === 0">
+                                        <div class="col-span-full text-center py-12">
+                                            <div class="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                                <i class="fas fa-credit-card text-slate-400 text-2xl"></i>
+                                            </div>
+                                            <div class="text-slate-600 font-medium">No subscriptions found</div>
+                                            <div class="text-slate-400 text-sm mt-1">Add your first subscription or adjust filters</div>
+                                        </div>
+                                    </template>
+                                    <template x-for="subscription in paginatedSubscriptions()" :key="subscription.id">
+                                        <div class="subscription-card bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                                            <div class="p-5">
+                                                <div class="flex items-start justify-between mb-4">
+                                                    <div class="flex items-center">
+                                                        <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white">
+                                                            <i class="fas fa-credit-card text-lg"></i>
+                                                        </div>
+                                                        <div class="ml-3">
+                                                            <h3 class="font-semibold text-slate-800" x-text="subscription.name"></h3>
+                                                            <span class="plan-badge" :class="getPlanColor(subscription.plan)" x-text="subscription.plan"></span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex items-center">
+                                                        <span class="subscription-status" :class="getStatusColor(subscription.status)" x-text="subscription.status"></span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="space-y-3 mb-4">
+                                                    <div class="flex items-center justify-between text-sm">
+                                                        <span class="text-slate-500">Customer</span>
+                                                        <span class="font-medium text-slate-800" x-text="subscription.customer"></span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-sm">
+                                                        <span class="text-slate-500">Amount</span>
+                                                        <span class="font-medium text-slate-800" x-text="formatCurrency(subscription.amount)"></span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-sm">
+                                                        <span class="text-slate-500">Billing Cycle</span>
+                                                        <span class="font-medium text-slate-800" x-text="subscription.billingCycle"></span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-sm">
+                                                        <span class="text-slate-500">Start Date</span>
+                                                        <span class="font-medium text-slate-800" x-text="subscription.startDate"></span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="flex gap-2">
+                                                    <button @click="viewSubscriptionDetails(subscription)" class="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-sm font-medium">
+                                                        <i class="fas fa-eye mr-1"></i>
+                                                        View
+                                                    </button>
+                                                    <template x-if="subscription.status === 'active'">
+                                                        <button @click="renewSubscription(subscription)" class="flex-1 px-3 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition text-sm font-medium">
+                                                            <i class="fas fa-redo mr-1"></i>
+                                                            Renew
+                                                        </button>
+                                                    </template>
+                                                    <template x-if="subscription.status !== 'cancelled'">
+                                                        <button @click="cancelSubscription(subscription)" class="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition text-sm font-medium">
+                                                            <i class="fas fa-times mr-1"></i>
+                                                            Cancel
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+
+                            <!-- Table View -->
+                            <template x-if="viewMode === 'table'">
+                                <div class="bg-slate-50 rounded-xl overflow-hidden">
+                                    <table class="w-full">
+                                        <thead class="bg-slate-100 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Subscription</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Customer</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Plan</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Amount</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Billing Cycle</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-slate-100">
+                                            <template x-if="filteredSubscriptions().length === 0">
+                                                <tr>
+                                                    <td colspan="7" class="px-4 py-8 text-center">
+                                                        <div class="text-slate-500">No subscriptions found</div>
+                                                        <div class="text-slate-400 text-xs mt-1">Add your first subscription or adjust filters</div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <template x-for="subscription in filteredSubscriptions()" :key="subscription.id">
+                                                <tr class="table-row-hover">
+                                                    <td class="px-4 py-4">
+                                                        <div class="flex items-center">
+                                                            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white">
+                                                                <i class="fas fa-credit-card"></i>
+                                                            </div>
+                                                            <div class="ml-3">
+                                                                <div class="text-sm font-medium text-slate-900" x-text="subscription.name"></div>
+                                                                <div class="text-xs text-slate-500" x-text="subscription.createdDate"></div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-4 py-4 text-sm text-slate-600" x-text="subscription.customer"></td>
+                                                    <td class="px-4 py-4">
+                                                        <span class="plan-badge" :class="getPlanColor(subscription.plan)" x-text="subscription.plan"></span>
+                                                    </td>
+                                                    <td class="px-4 py-4">
+                                                        <span class="subscription-status" :class="getStatusColor(subscription.status)" x-text="subscription.status"></span>
+                                                    </td>
+                                                    <td class="px-4 py-4 text-sm text-slate-600" x-text="formatCurrency(subscription.amount)"></td>
+                                                    <td class="px-4 py-4 text-sm text-slate-600" x-text="subscription.billingCycle"></td>
+                                                    <td class="px-4 py-4">
+                                                        <div class="flex items-center gap-2">
+                                                            <button @click="viewSubscriptionDetails(subscription)" class="text-blue-500 hover:text-blue-700 transition" title="View Details">
+                                                                <i class="fas fa-eye"></i>
+                                                            </button>
+                                                            <template x-if="subscription.status === 'active'">
+                                                                <button @click="renewSubscription(subscription)" class="text-green-500 hover:text-green-700 transition" title="Renew Subscription">
+                                                                    <i class="fas fa-redo"></i>
+                                                                </button>
+                                                            </template>
+                                                            <template x-if="subscription.status !== 'cancelled'">
+                                                                <button @click="cancelSubscription(subscription)" class="text-red-500 hover:text-red-700 transition" title="Cancel Subscription">
+                                                                    <i class="fas fa-times"></i>
+                                                                </button>
+                                                            </template>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Pagination (only for grid view) -->
+                    <template x-if="viewMode === 'grid'">
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+                            <div class="text-sm text-slate-600">
+                                Showing <span x-text="(currentPage - 1) * itemsPerPage + 1"></span> to 
+                                <span x-text="Math.min(currentPage * itemsPerPage, filteredSubscriptions().length)"></span> of 
+                                <span x-text="filteredSubscriptions().length"></span> results
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button @click="currentPage > 1 && currentPage--" 
+                                        :disabled="currentPage === 1"
+                                        class="px-3 py-1 rounded-lg border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <template x-for="page in totalPages()" :key="page">
+                                    <button @click="currentPage = page"
+                                            :class="currentPage === page ? 'bg-orange-500 text-white' : 'border border-slate-200 text-slate-600 hover:bg-slate-50'"
+                                            class="px-3 py-1 rounded-lg text-sm">
+                                        <span x-text="page"></span>
+                                    </button>
+                                </template>
+                                <button @click="currentPage < totalPages() && currentPage++"
+                                        :disabled="currentPage === totalPages()"
+                                        class="px-3 py-1 rounded-lg border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </main>
+        </div>
+
+        <!-- Add Subscription Modal -->
+        <div x-show="showAddSubscription" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 modal-backdrop" @click="showAddSubscription = false"></div>
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h3 class="text-lg font-semibold text-slate-800">Add New Subscription</h3>
+                    <p class="text-sm text-slate-500 mt-1">Create a new subscription</p>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Subscription Name *</label>
+                            <input type="text" x-model="newSubscriptionName" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter subscription name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Plan *</label>
+                            <select x-model="newSubscriptionPlan" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="">Select plan</option>
+                                <option value="basic">Basic</option>
+                                <option value="premium">Premium</option>
+                                <option value="enterprise">Enterprise</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Customer *</label>
+                            <input type="text" x-model="newSubscriptionCustomer" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter customer name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Amount (ZMW) *</label>
+                            <input type="number" x-model="newSubscriptionAmount" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter amount">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Billing Cycle</label>
+                            <select x-model="newSubscriptionBillingCycle" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                            <select x-model="newSubscriptionStatus" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="trial">Trial</option>
+                                <option value="expired">Expired</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
+                            <input type="date" x-model="newSubscriptionStartDate" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">End Date</label>
+                            <input type="date" x-model="newSubscriptionEndDate" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+                    <button @click="showAddSubscription = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
+                        Cancel
+                    </button>
+                    <button @click="addSubscription()" class="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl hover:from-orange-500 hover:to-orange-600 transition">
+                        Add Subscription
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Details Modal -->
+        <div x-show="showSubscriptionDetails" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 modal-backdrop" @click="showSubscriptionDetails = false"></div>
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h3 class="text-lg font-semibold text-slate-800">Subscription Details</h3>
+                    <p class="text-sm text-slate-500 mt-1">View detailed subscription information</p>
+                </div>
+                <div class="px-6 py-4">
+                    <template x-if="selectedSubscription">
+                        <div class="space-y-4">
+                            <div class="bg-slate-50 rounded-xl p-4">
+                                <div class="flex items-center mb-4">
+                                    <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white">
+                                        <i class="fas fa-credit-card text-lg"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-semibold text-slate-800" x-text="selectedSubscription.name"></h4>
+                                        <span class="plan-badge" :class="getPlanColor(selectedSubscription.plan)" x-text="selectedSubscription.plan"></span>
+                                    </div>
+                                </div>
+                                <span class="subscription-status" :class="getStatusColor(selectedSubscription.status)" x-text="selectedSubscription.status"></span>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-slate-50 rounded-xl p-4">
+                                    <div class="text-sm text-slate-500">Customer</div>
+                                    <div class="text-lg font-semibold text-slate-800" x-text="selectedSubscription.customer"></div>
+                                </div>
+                                <div class="bg-slate-50 rounded-xl p-4">
+                                    <div class="text-sm text-slate-500">Amount</div>
+                                    <div class="text-lg font-semibold text-slate-800" x-text="formatCurrency(selectedSubscription.amount)"></div>
+                                </div>
+                                <div class="bg-slate-50 rounded-xl p-4">
+                                    <div class="text-sm text-slate-500">Billing Cycle</div>
+                                    <div class="text-lg font-semibold text-slate-800" x-text="selectedSubscription.billingCycle"></div>
+                                </div>
+                                <div class="bg-slate-50 rounded-xl p-4">
+                                    <div class="text-sm text-slate-500">Start Date</div>
+                                    <div class="text-lg font-semibold text-slate-800" x-text="selectedSubscription.startDate"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h5 class="font-medium text-slate-800 mb-2">Subscription Information</h5>
+                                <div class="bg-slate-50 rounded-xl p-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <div class="text-sm text-slate-500">Created Date</div>
+                                            <div class="text-sm font-medium text-slate-800" x-text="selectedSubscription.createdDate"></div>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm text-slate-500">Created Time</div>
+                                            <div class="text-sm font-medium text-slate-800" x-text="selectedSubscription.createdTime"></div>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm text-slate-500">End Date</div>
+                                            <div class="text-sm font-medium text-slate-800" x-text="selectedSubscription.endDate || 'Not set'"></div>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm text-slate-500">Created By</div>
+                                            <div class="text-sm font-medium text-slate-800" x-text="selectedSubscription.createdBy"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div class="px-6 py-4 border-t border-slate-100 flex justify-end">
+                    <button @click="showSubscriptionDetails = false" class="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl hover:from-orange-500 hover:to-orange-600 transition">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

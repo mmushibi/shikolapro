@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Hostel Portal</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+    <style>
+        /* Font family setup */
+        body {
+            font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Consistent font sizes */
+        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-sm { font-size: 0.825rem !important; line-height: 1.125rem !important; }
+        .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .text-lg { font-size: 0.925rem !important; line-height: 1.375rem !important; }
+        .text-xl { font-size: 0.975rem !important; line-height: 1.5rem !important; }
+        .text-2xl { font-size: 1.025rem !important; line-height: 1.625rem !important; }
+        .text-3xl { font-size: 1.075rem !important; line-height: 1.75rem !important; }
+
+        /* Override any larger font sizes */
+        .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+
+        /* Custom scrollbar to match app theme */
+        body, body * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        body::-webkit-scrollbar,
+        body *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        body::-webkit-scrollbar-track,
+        body *::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        body::-webkit-scrollbar-thumb,
+        body *::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #f97316, #ea580c);
+            border-radius: 9999px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover,
+        body *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ea580c, #c2410c);
+        }
+
+        /* Custom animations */
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Chart styles */
+        .chart-container {
+            position: relative;
+            height: 200px;
+        }
+
+        .gender-bar {
+            transition: all 0.3s ease;
+        }
+
+        .gender-bar:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        /* Ensure consistent small text throughout */
+        h1 { font-size: 1.25rem !important; }
+        h2 { font-size: 1.125rem !important; }
+        h3 { font-size: 1rem !important; }
+        h4 { font-size: 0.925rem !important; }
+        h5 { font-size: 0.875rem !important; }
+        h6 { font-size: 0.825rem !important; }
+        
+        /* Input and button text sizes */
+        input, button, select, textarea {
+            font-size: 0.825rem !important;
+        }
+
+        /* Badge and label text */
+        .badge, .label {
+            font-size: 0.7rem !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        mobileSearchOpen: false,
+        mobileNotificationsOpen: false,
+        mobileProfileOpen: false,
+        mobileSearchQuery: '',
+        pageTitle: 'Hostel Portal',
+        pageSubtitle: 'Manage hostel operations efficiently',
+        // Recent room allocations - will be loaded from API
+        recentAllocations: [],
+        notices: [],
+        todos: [],
+        newNoticeTitle: '',
+        newNoticeMessage: '',
+        newTodoText: '',
+        newTodoPriority: 'medium',
+        showAddNotice: false,
+        showAddTodo: false,
+        currentDate: new Date(),
+        currentMonth: new Date().getMonth(),
+        currentYear: new Date().getFullYear(),
+        today: new Date().getDate(),
+        monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        daysInMonth() {
+            return new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+        },
+        firstDayOfMonth() {
+            return new Date(this.currentYear, this.currentMonth, 1).getDay();
+        },
+        calendarDays() {
+            const days = [];
+            const daysInMonth = this.daysInMonth();
+            const firstDay = this.firstDayOfMonth();
+            
+            // Add empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                days.push(null);
+            }
+            
+            // Add all days of the month
+            for (let i = 1; i <= daysInMonth; i++) {
+                days.push(i);
+            }
+            
+            return days;
+        },
+        isToday(day) {
+            return day === this.today && this.currentMonth === new Date().getMonth() && this.currentYear === new Date().getFullYear();
+        },
+        isCurrentMonth() {
+            return this.currentMonth === new Date().getMonth() && this.currentYear === new Date().getFullYear();
+        },
+        previousMonth() {
+            if (this.currentMonth === 0) {
+                this.currentMonth = 11;
+                this.currentYear--;
+            } else {
+                this.currentMonth--;
+            }
+        },
+        nextMonth() {
+            if (this.currentMonth === 11) {
+                this.currentMonth = 0;
+                this.currentYear++;
+            } else {
+                this.currentMonth++;
+            }
+        },
+        goToToday() {
+            this.currentMonth = new Date().getMonth();
+            this.currentYear = new Date().getFullYear();
+            this.today = new Date().getDate();
+        },
+        init() {
+            // Update time every minute
+            setInterval(() => {
+                this.currentDate = new Date();
+                const newToday = new Date().getDate();
+                if (newToday !== this.today) {
+                    this.today = newToday;
+                }
+            }, 60000);
+            
+            // Load initial data
+            this.loadRecentAllocations();
+        },
+        
+        loadHostelData() {
+            // This will be replaced with actual API calls
+            console.log('Loading hostel data...');
+        },
+        
+        loadRecentAllocations() {
+            // Load recent student room allocations from API
+            console.log('Loading recent allocations...');
+            // This will be replaced with actual API call
+            this.recentAllocations = [
+                // Will be populated from API
+            ];
+        },
+        
+        // Button click handlers
+        viewRoomDetails() {
+            console.log('View room details clicked');
+            // Navigate to rooms page or show modal
+            window.location.href = 'rooms.html';
+        },
+        
+        viewAllActivities() {
+            console.log('View all activities clicked');
+            // Navigate to allocation query page
+            window.location.href = 'allocation-query.html';
+        },
+        
+        quickCheckIn() {
+            console.log('Quick check-in clicked');
+            // Could open a check-in modal
+            alert('Check-in feature - would open check-in form');
+        },
+        
+        quickCheckOut() {
+            console.log('Quick check-out clicked');
+            // Could open a check-out modal
+            alert('Check-out feature - would open check-out form');
+        },
+        unreadCount() {
+            return this.notifications.filter(n => !n.read).length;
+        },
+        addNotice() {
+            if (this.newNoticeTitle && this.newNoticeMessage) {
+                this.notices.unshift({
+                    id: Date.now(),
+                    title: this.newNoticeTitle,
+                    message: this.newNoticeMessage,
+                    time: 'Just now',
+                    type: 'normal'
+                });
+                this.newNoticeTitle = '';
+                this.newNoticeMessage = '';
+                this.showAddNotice = false;
+            }
+        },
+        addTodo() {
+            if (this.newTodoText) {
+                this.todos.unshift({
+                    id: Date.now(),
+                    text: this.newTodoText,
+                    completed: false,
+                    priority: this.newTodoPriority
+                });
+                this.newTodoText = '';
+                this.newTodoPriority = 'medium';
+                this.showAddTodo = false;
+            }
+        },
+        toggleTodo(id) {
+            const todo = this.todos.find(t => t.id === id);
+            if (todo) todo.completed = !todo.completed;
+        },
+        deleteNotice(id) {
+            this.notices = this.notices.filter(n => n.id !== id);
+        },
+        deleteTodo(id) {
+            this.todos = this.todos.filter(t => t.id !== id);
+        }
+    }" x-init="init()" class="min-h-screen flex">
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="font-medium flex-1">Home</span>
+                        </a>
+                        <a href="rooms.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-bed"></i>
+                            </span>
+                            <span class="flex-1">Rooms</span>
+                        </a>
+                        <a href="residents.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-friends"></i>
+                            </span>
+                            <span class="flex-1">Residents</span>
+                        </a>
+                        <a href="visitors.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-check"></i>
+                            </span>
+                            <span class="flex-1">Visitors</span>
+                        </a>
+                        <a href="inventory.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-boxes"></i>
+                            </span>
+                            <span class="flex-1">Inventory</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="account.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-cog"></i>
+                            </span>
+                            <span class="flex-1">Account</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Quick Actions Card -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Quick Actions</h4>
+                        <p class="text-xs opacity-90 mb-3">Manage daily hostel operations</p>
+                        <div class="flex gap-2">
+                            <button @click="quickCheckIn()" class="flex-1 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check In
+                            </button>
+                            <button @click="quickCheckOut()" class="flex-1 bg-white text-blue-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                   <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="font-medium flex-1">Home</span>
+                        </a>
+                        <a href="rooms.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-bed"></i>
+                            </span>
+                            <span class="flex-1">Rooms</span>
+                        </a>
+                        <a href="residents.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-friends"></i>
+                            </span>
+                            <span class="flex-1">Residents</span>
+                        </a>
+                        <a href="visitors.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-check"></i>
+                            </span>
+                            <span class="flex-1">Visitors</span>
+                        </a>
+                        <a href="inventory.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-boxes"></i>
+                            </span>
+                            <span class="flex-1">Inventory</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="account.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-cog"></i>
+                            </span>
+                            <span class="flex-1">Account</span>
+                        </a>
+                    </div>
+                </nav>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7 h-full flex flex-col">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-100 pb-3">
+                        <div class="flex items-center justify-center w-full lg:w-auto lg:justify-start gap-3">
+                            <button type="button" @click="sidebarOpen = true" class="lg:hidden fixed top-4 left-4 z-50 h-9 w-9 rounded-xl bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="relative">
+                                <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-14 w-auto rounded-2xl lg:hidden">
+                                <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                            </div>
+                            <div class="hidden lg:block">
+                                <h1 class="text-2xl sm:text-3xl font-semibold text-slate-800">Hostel Portal</h1>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1 hidden sm:block">Manage hostel operations efficiently</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hidden sm:flex items-center gap-3">
+                            <!-- Search Bar -->
+                            <div class="relative hidden sm:flex items-center bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 w-64">
+                                <i class="fas fa-search text-slate-400 text-sm mr-2"></i>
+                                <input type="text" placeholder="Search residents, rooms..." class="bg-transparent text-sm text-slate-600 placeholder-slate-400 focus:outline-none flex-1">
+                            </div>
+
+                            <!-- Notifications -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="relative h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                                    <i class="fas fa-bell"></i>
+                                    <span x-show="unreadCount() > 0" x-text="unreadCount()" class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"></span>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                        <h3 class="font-semibold text-slate-800">Notifications</h3>
+                                        <div class="flex gap-2">
+                                            <button @click="notifications.forEach(n => n.read = true)" class="text-xs text-orange-500 hover:text-orange-600 font-medium">Read All</button>
+                                            <button @click="notifications = []" class="text-xs text-red-500 hover:text-red-600 font-medium">Clear</button>
+                                        </div>
+                                    </div>
+                                    <div class="max-h-96 overflow-y-auto">
+                                        <template x-if="notifications.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-bell text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No notifications yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">You're all caught up!</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="notification in notifications" :key="notification.id">
+                                            <div class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition cursor-pointer">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="h-2 w-2 rounded-full mt-2" :class="notification.read ? 'bg-slate-300' : 'bg-orange-500'"></div>
+                                                    <div class="flex-1">
+                                                        <div class="font-medium text-slate-800 text-sm" x-text="notification.title"></div>
+                                                        <div class="text-slate-500 text-xs mt-1" x-text="notification.message"></div>
+                                                        <div class="text-slate-400 text-xs mt-1" x-text="notification.time"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Profile -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition">
+                                    <div class="h-8 w-8 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white">
+                                        <i class="fas fa-user text-sm"></i>
+                                    </div>
+                                    <div class="hidden sm:block text-left">
+                                        <div class="font-medium text-slate-800 text-sm">Hostel Manager</div>
+                                        <div class="text-slate-500 text-xs">Admin</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                                        <i class="fas fa-user text-slate-400"></i>
+                                        <span class="text-sm text-slate-700">Profile</span>
+                                    </a>
+                                    <button class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-500 transition">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span class="text-sm">Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 lg:gap-6 mt-6 quick-stats">
+                        <div class="rounded-2xl bg-gradient-to-tr from-orange-400 to-orange-500 text-white p-5 flex items-center justify-between shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-orange-100/90">Total Rooms</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none">-</div>
+                                <div class="mt-1 text-xs text-orange-100/80">Loading...</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-bed text-xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-2xl bg-gradient-to-tr from-blue-400 to-cyan-500 text-white p-5 flex items-center justify-between shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-blue-100/90">Occupied Rooms</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none">-</div>
+                                <div class="mt-1 text-xs text-blue-100/80">Loading...</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-door-closed text-xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-2xl bg-gradient-to-tr from-emerald-400 to-teal-500 text-white p-5 flex items-center justify-between shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-emerald-100/90">Total Residents</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none">-</div>
+                                <div class="mt-1 text-xs text-emerald-100/80">Loading...</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-user-friends text-xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-2xl bg-gradient-to-tr from-purple-400 to-indigo-500 text-white p-5 flex items-center justify-between shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer">
+                            <div>
+                                <div class="text-xs uppercase tracking-wide text-purple-100/90">Available Rooms</div>
+                                <div class="mt-2 text-2xl font-semibold leading-none">-</div>
+                                <div class="mt-1 text-xs text-purple-100/80">Loading...</div>
+                            </div>
+                            <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-door-open text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Dashboard Grid -->
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6 flex-1">
+                        <div class="xl:col-span-2 space-y-6">
+                            <!-- Recent Room Allocations -->
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="text-sm font-semibold text-slate-800">Recent Room Allocations</div>
+                                        <div class="text-xs text-slate-400 mt-1">Students approved for room allocation</div>
+                                    </div>
+                                    <div class="h-8 w-8 rounded-xl bg-green-100 flex items-center justify-center">
+                                        <i class="fas fa-bed text-green-600 text-sm"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-5 space-y-3">
+                                    <template x-if="recentAllocations.length === 0">
+                                        <div class="px-4 py-6 text-center">
+                                            <div class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-2">
+                                                <i class="fas fa-bed text-slate-400"></i>
+                                            </div>
+                                            <div class="text-xs text-slate-500">No recent allocations</div>
+                                        </div>
+                                    </template>
+                                    <template x-for="allocation in recentAllocations.slice(0, 5)" :key="allocation.id">
+                                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition cursor-pointer">
+                                            <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                                                <i class="fas fa-user text-green-600 text-xs"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="text-sm font-medium text-slate-800" x-text="allocation.studentName"></div>
+                                                <div class="text-xs text-slate-500" x-text="allocation.studentId + ' • ' + allocation.requestedRoom"></div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xs text-slate-400" x-text="allocation.approvedDate"></div>
+                                                <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-600">Approved</span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-slate-100">
+                                    <button @click="viewAllActivities()" class="w-full px-3 py-2 bg-orange-100 text-orange-600 rounded-lg text-xs font-medium hover:bg-orange-200 transition">
+                                        View More Allocations
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Recent Activities -->
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="text-sm font-semibold text-slate-800">Recent Activities</div>
+                                        <div class="text-xs text-slate-400 mt-1">Latest hostel operations</div>
+                                    </div>
+                                    <button @click="viewAllActivities()" class="px-3 py-1.5 bg-orange-100 text-orange-500 rounded-lg text-xs font-medium hover:bg-orange-200 transition">
+                                        View All
+                                    </button>
+                                </div>
+                                <div class="space-y-3 mt-5">
+                                    <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                                        <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                                            <i class="fas fa-user-plus text-green-600 text-xs"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="text-sm font-medium text-slate-800">New resident checked in</div>
+                                            <div class="text-xs text-slate-500">Loading...</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                                        <div class="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
+                                            <i class="fas fa-user-check text-purple-600 text-xs"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="text-sm font-medium text-slate-800">Visitor registered</div>
+                                            <div class="text-xs text-slate-500">Loading...</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                                        <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                            <i class="fas fa-door-open text-blue-600 text-xs"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="text-sm font-medium text-slate-800">Room allocation updated</div>
+                                            <div class="text-xs text-slate-500">Loading...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Sidebar -->
+                        <div class="space-y-6">
+                            <!-- Room Occupancy Overview -->
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="text-sm font-semibold text-slate-800">Room Occupancy Overview</div>
+                                        <div class="text-xs text-slate-400 mt-1">Current occupancy status by block</div>
+                                    </div>
+                                    <button @click="viewRoomDetails()" class="px-3 py-1.5 bg-orange-100 text-orange-500 rounded-lg text-xs font-medium hover:bg-orange-200 transition">
+                                        View Details
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mt-5">
+                                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="text-xs font-medium text-blue-600 uppercase tracking-wide">Male Block</div>
+                                                <div class="text-xl font-bold text-blue-700 mt-1">-</div>
+                                                <div class="text-xs text-blue-500 mt-1">Loading...</div>
+                                            </div>
+                                            <div class="h-10 w-10 rounded-xl bg-blue-200 flex items-center justify-center">
+                                                <i class="fas fa-male text-blue-600"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-4 border border-pink-200">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="text-xs font-medium text-pink-600 uppercase tracking-wide">Female Block</div>
+                                                <div class="text-xl font-bold text-pink-700 mt-1">-</div>
+                                                <div class="text-xs text-pink-500 mt-1">Loading...</div>
+                                            </div>
+                                            <div class="h-10 w-10 rounded-xl bg-pink-200 flex items-center justify-center">
+                                                <i class="fas fa-female text-pink-600"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Stats Summary -->
+                            <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl border border-orange-200 p-5">
+                                <div class="text-sm font-semibold text-orange-800 mb-4">Occupancy Overview</div>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs text-orange-600">Total Rooms</span>
+                                        <span class="text-sm font-bold text-orange-800">-</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs text-orange-600">Occupied Rooms</span>
+                                        <span class="text-sm font-bold text-orange-800">-</span>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2 border-t border-orange-200">
+                                        <span class="text-xs text-orange-600">Occupancy Rate</span>
+                                        <span class="text-sm font-bold text-orange-800">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

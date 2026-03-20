@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - System Security</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+    <style>
+        /* Font family setup */
+        body {
+            font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Consistent font sizes */
+        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-sm { font-size: 0.825rem !important; line-height: 1.125rem !important; }
+        .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .text-lg { font-size: 0.925rem !important; line-height: 1.375rem !important; }
+        .text-xl { font-size: 0.975rem !important; line-height: 1.5rem !important; }
+        .text-2xl { font-size: 1.025rem !important; line-height: 1.625rem !important; }
+        .text-3xl { font-size: 1.075rem !important; line-height: 1.75rem !important; }
+
+        /* Override any larger font sizes */
+        .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+
+        /* Custom scrollbar to match app theme */
+        body, body * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        body::-webkit-scrollbar,
+        body *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        body::-webkit-scrollbar-track,
+        body *::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        body::-webkit-scrollbar-thumb,
+        body *::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #f97316, #ea580c);
+            border-radius: 9999px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover,
+        body *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ea580c, #c2410c);
+        }
+
+        /* Ensure consistent small text throughout */
+        h1 { font-size: 1.25rem !important; }
+        h2 { font-size: 1.125rem !important; }
+        h3 { font-size: 1rem !important; }
+        h4 { font-size: 0.925rem !important; }
+        h5 { font-size: 0.875rem !important; }
+        h6 { font-size: 0.825rem !important; }
+        
+        /* Input and button text sizes */
+        input, button, select, textarea {
+            font-size: 0.825rem !important;
+        }
+
+        /* Badge and label text */
+        .badge, .label {
+            font-size: 0.7rem !important;
+        }
+
+        /* Security status indicators */
+        .security-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .status-secure {
+            background: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+
+        .status-warning {
+            background: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+
+        .status-critical {
+            background: #ef4444;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+        }
+
+        .threat-level {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .threat-low {
+            background: linear-gradient(to right, #10b981, #059669);
+            color: white;
+        }
+
+        .threat-medium {
+            background: linear-gradient(to right, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .threat-high {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .threat-critical {
+            background: linear-gradient(to right, #7c3aed, #6d28d9);
+            color: white;
+        }
+
+        /* Progress bars */
+        .progress-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-low {
+            background: linear-gradient(to right, #10b981, #059669);
+        }
+
+        .progress-medium {
+            background: linear-gradient(to right, #f59e0b, #d97706);
+        }
+
+        .progress-high {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+        }
+
+        /* Security card hover effects */
+        .security-card {
+            transition: all 0.3s ease;
+        }
+
+        .security-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Loading animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        mobileSearchOpen: false,
+        mobileNotificationsOpen: false,
+        mobileProfileOpen: false,
+        mobileSearchQuery: '',
+        pageTitle: 'System Security',
+        pageSubtitle: 'Monitor and manage system security',
+        activeTab: 'overview',
+        notifications: [],
+        
+        // Security data
+        securityEvents: [],
+        threats: [],
+        policies: [],
+        auditLogs: [],
+        systemHealth: {},
+        
+        // Security metrics
+        securityScore: 0,
+        activeThreats: 0,
+        blockedAttempts: 0,
+        lastScan: '',
+        
+        init() {
+            this.loadSecurityData();
+        },
+        
+        loadSecurityData() {
+            // Initialize with empty data - will be populated by API
+            this.securityEvents = [];
+            this.threats = [];
+            this.policies = [];
+            this.auditLogs = [];
+            this.systemHealth = {
+                firewall: 'active',
+                antivirus: 'active',
+                encryption: 'active',
+                backup: 'active'
+            };
+            this.securityScore = 95;
+            this.activeThreats = 2;
+            this.blockedAttempts = 1247;
+            this.lastScan = new Date().toISOString();
+        },
+        
+        switchTab(tab) {
+            console.log('Switching to tab:', tab);
+            this.activeTab = tab;
+        },
+        
+        runSecurityScan() {
+            console.log('Running security scan...');
+            // Implementation for running security scan
+        },
+        
+        updatePolicy(policyId) {
+            console.log('Updating policy:', policyId);
+            // Implementation for updating security policies
+        },
+        
+        blockThreat(threatId) {
+            console.log('Blocking threat:', threatId);
+            // Implementation for blocking threats
+        },
+        
+        unreadCount() {
+            return this.notifications.filter(n => !n.read).length;
+        },
+        
+        getSecurityLevel(score) {
+            if (score >= 90) return { text: 'Excellent', class: 'text-green-600', bg: 'bg-green-100' };
+            if (score >= 70) return { text: 'Good', class: 'text-blue-600', bg: 'bg-blue-100' };
+            if (score >= 50) return { text: 'Fair', class: 'text-yellow-600', bg: 'bg-yellow-100' };
+            return { text: 'Critical', class: 'text-red-600', bg: 'bg-red-100' };
+        },
+        
+        getThreatLevel(level) {
+            const levels = {
+                'low': { text: 'Low', class: 'threat-low' },
+                'medium': { text: 'Medium', class: 'threat-medium' },
+                'high': { text: 'High', class: 'threat-high' },
+                'critical': { text: 'Critical', class: 'threat-critical' }
+            };
+            return levels[level] || levels['low'];
+        }
+    }" x-init="init()" class="min-h-screen flex">
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">System Dashboard</span>
+                        </a>
+                        <a href="users.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-users"></i>
+                            </span>
+                            <span class="flex-1">User Management</span>
+                        </a>
+                        <a href="branches.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-building"></i>
+                            </span>
+                            <span class="flex-1">Branch Management</span>
+                        </a>
+                        <a href="roles.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-tag"></i>
+                            </span>
+                            <span class="flex-1">Role Management</span>
+                        </a>
+                        <a href="permissions.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-key"></i>
+                            </span>
+                            <span class="flex-1">Permissions</span>
+                        </a>
+                        <a href="system-settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cogs"></i>
+                            </span>
+                            <span class="flex-1">System Settings</span>
+                        </a>
+                        <a href="audit-logs.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-history"></i>
+                            </span>
+                            <span class="flex-1">Audit Logs</span>
+                        </a>
+                        <a href="backups.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-database"></i>
+                            </span>
+                            <span class="flex-1">Backups</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <span class="font-medium flex-1">Security</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-file-alt"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="flex-1">Settings</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Security Stats -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Security Status</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Security Score</span>
+                                <span class="font-medium" x-text="securityScore + '%'"></span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Active Threats</span>
+                                <span class="font-medium" x-text="activeThreats"></span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Blocked Today</span>
+                                <span class="font-medium" x-text="blockedAttempts"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                    <nav class="nav-menu space-y-1 text-sm">
+                        <div class="pt-4">
+                            <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-home"></i>
+                                </span>
+                                <span class="flex-1">System Dashboard</span>
+                            </a>
+                            <a href="users.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-users"></i>
+                                </span>
+                                <span class="flex-1">User Management</span>
+                            </a>
+                            <a href="branches.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-building"></i>
+                                </span>
+                                <span class="flex-1">Branch Management</span>
+                            </a>
+                            <a href="roles.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-user-tag"></i>
+                                </span>
+                                <span class="flex-1">Role Management</span>
+                            </a>
+                            <a href="permissions.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-key"></i>
+                                </span>
+                                <span class="flex-1">Permissions</span>
+                            </a>
+                            <a href="system-settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-cogs"></i>
+                                </span>
+                                <span class="flex-1">System Settings</span>
+                            </a>
+                            <a href="audit-logs.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-history"></i>
+                                </span>
+                                <span class="flex-1">Audit Logs</span>
+                            </a>
+                            <a href="backups.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-database"></i>
+                                </span>
+                                <span class="flex-1">Backups</span>
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <span class="font-medium flex-1">Security</span>
+                            </a>
+                            <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-file-alt"></i>
+                                </span>
+                                <span class="flex-1">Reports</span>
+                            </a>
+                            <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-cog"></i>
+                                </span>
+                                <span class="flex-1">Settings</span>
+                            </a>
+                        </div>
+                    </nav>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7 h-full flex flex-col">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-100 pb-3">
+                        <div class="flex items-center justify-center w-full lg:w-auto lg:justify-start gap-3">
+                            <button type="button" @click="sidebarOpen = true" class="lg:hidden fixed top-4 left-4 z-50 h-9 w-9 rounded-xl bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="relative">
+                                <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-14 w-auto rounded-2xl lg:hidden">
+                                <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                            </div>
+                            <div class="hidden lg:block">
+                                <h1 class="text-2xl sm:text-3xl font-semibold text-slate-800">System Security</h1>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1 hidden sm:block">Monitor and manage system security</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hidden sm:flex items-center gap-3">
+                            <!-- Security Scan Button -->
+                            <button @click="runSecurityScan()" class="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                                <i class="fas fa-shield-alt mr-2"></i>
+                                Run Security Scan
+                            </button>
+
+                            <!-- Notifications -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="relative h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                                    <i class="fas fa-bell"></i>
+                                    <span x-show="unreadCount() > 0" x-text="unreadCount()" class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"></span>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                        <h3 class="font-semibold text-slate-800">Security Alerts</h3>
+                                        <div class="flex gap-2">
+                                            <button @click="notifications.forEach(n => n.read = true)" class="text-xs text-orange-500 hover:text-orange-600 font-medium">Read All</button>
+                                            <button @click="notifications = []" class="text-xs text-red-500 hover:text-red-600 font-medium">Clear</button>
+                                        </div>
+                                    </div>
+                                    <div class="max-h-96 overflow-y-auto">
+                                        <template x-if="notifications.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-shield-alt text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No security alerts</div>
+                                                <div class="text-xs text-slate-400 mt-1">System is secure</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="notification in notifications" :key="notification.id">
+                                            <div class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition cursor-pointer">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="h-2 w-2 rounded-full mt-2" :class="notification.read ? 'bg-slate-300' : 'bg-orange-500'"></div>
+                                                    <div class="flex-1">
+                                                        <div class="font-medium text-slate-800 text-sm" x-text="notification.title"></div>
+                                                        <div class="text-slate-500 text-xs mt-1" x-text="notification.message"></div>
+                                                        <div class="text-slate-400 text-xs mt-1" x-text="notification.time"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Profile -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition">
+                                    <div class="h-8 w-8 rounded-xl bg-gradient-to-br from-red-400 to-pink-500 flex items-center justify-center text-white">
+                                        <i class="fas fa-shield-alt text-sm"></i>
+                                    </div>
+                                    <div class="hidden sm:block text-left">
+                                        <div class="font-medium text-slate-800 text-sm">System Admin</div>
+                                        <div class="text-slate-500 text-xs">Security Officer</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                                        <i class="fas fa-user text-slate-400"></i>
+                                        <span class="text-sm text-slate-700">Profile</span>
+                                    </a>
+                                    <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-500 transition">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span class="text-sm">Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Overview Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mt-6">
+                        <div class="security-card bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl p-5 text-white">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+                                    <i class="fas fa-shield-check"></i>
+                                </div>
+                                <span class="security-status status-secure"></span>
+                            </div>
+                            <div class="text-2xl font-bold" x-text="securityScore + '%'"></div>
+                            <div class="text-xs opacity-90 mt-1">Security Score</div>
+                            <div class="mt-2">
+                                <div class="progress-bar">
+                                    <div class="progress-fill progress-low" :style="'width: ' + securityScore + '%'"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="security-card bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl p-5 text-white">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <span class="security-status status-warning"></span>
+                            </div>
+                            <div class="text-2xl font-bold" x-text="activeThreats"></div>
+                            <div class="text-xs opacity-90 mt-1">Active Threats</div>
+                            <div class="text-xs opacity-75 mt-2">Requires attention</div>
+                        </div>
+
+                        <div class="security-card bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl p-5 text-white">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+                                    <i class="fas fa-ban"></i>
+                                </div>
+                                <span class="security-status status-secure"></span>
+                            </div>
+                            <div class="text-2xl font-bold" x-text="blockedAttempts.toLocaleString()"></div>
+                            <div class="text-xs opacity-90 mt-1">Blocked Attempts</div>
+                            <div class="text-xs opacity-75 mt-2">Last 24 hours</div>
+                        </div>
+
+                        <div class="security-card bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 text-white">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <span class="security-status status-secure"></span>
+                            </div>
+                            <div class="text-2xl font-bold">2m</div>
+                            <div class="text-xs opacity-90 mt-1">Last Scan</div>
+                            <div class="text-xs opacity-75 mt-2">System secure</div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs Navigation -->
+                    <div class="flex border-b border-slate-200 mt-6">
+                        <button @click="switchTab('overview')" 
+                                :class="activeTab === 'overview' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors">
+                            <i class="fas fa-chart-line mr-2"></i>
+                            Security Overview
+                        </button>
+                        <button @click="switchTab('threats')" 
+                                :class="activeTab === 'threats' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Threat Detection
+                        </button>
+                        <button @click="switchTab('policies')" 
+                                :class="activeTab === 'policies' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors">
+                            <i class="fas fa-shield-alt mr-2"></i>
+                            Security Policies
+                        </button>
+                        <button @click="switchTab('audit')" 
+                                :class="activeTab === 'audit' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors">
+                            <i class="fas fa-history mr-2"></i>
+                            Audit Logs
+                        </button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="flex-1 overflow-y-auto mt-6">
+                        <!-- Security Overview Tab -->
+                        <div x-show="activeTab === 'overview'" x-transition class="space-y-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <!-- System Health -->
+                                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                                    <h3 class="text-lg font-semibold text-slate-800 mb-4">System Health</h3>
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-200">
+                                            <div class="flex items-center gap-3">
+                                                <span class="security-status status-secure"></span>
+                                                <div>
+                                                    <div class="text-sm font-medium text-green-800">Firewall</div>
+                                                    <div class="text-xs text-green-600">Active and monitoring</div>
+                                                </div>
+                                            </div>
+                                            <i class="fas fa-check-circle text-green-500"></i>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-200">
+                                            <div class="flex items-center gap-3">
+                                                <span class="security-status status-secure"></span>
+                                                <div>
+                                                    <div class="text-sm font-medium text-green-800">Antivirus</div>
+                                                    <div class="text-xs text-green-600">Real-time protection enabled</div>
+                                                </div>
+                                            </div>
+                                            <i class="fas fa-check-circle text-green-500"></i>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-200">
+                                            <div class="flex items-center gap-3">
+                                                <span class="security-status status-secure"></span>
+                                                <div>
+                                                    <div class="text-sm font-medium text-green-800">Encryption</div>
+                                                    <div class="text-xs text-green-600">Data encrypted at rest and in transit</div>
+                                                </div>
+                                            </div>
+                                            <i class="fas fa-check-circle text-green-500"></i>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-200">
+                                            <div class="flex items-center gap-3">
+                                                <span class="security-status status-secure"></span>
+                                                <div>
+                                                    <div class="text-sm font-medium text-green-800">Backup</div>
+                                                    <div class="text-xs text-green-600">Automated backups running</div>
+                                                </div>
+                                            </div>
+                                            <i class="fas fa-check-circle text-green-500"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Recent Security Events -->
+                                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Recent Security Events</h3>
+                                    <div class="space-y-3">
+                                        <template x-for="event in securityEvents.slice(0, 5)" :key="event.id">
+                                            <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                                                <div class="h-8 w-8 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                                                    <i class="fas fa-shield-alt text-orange-500 text-sm"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <div class="text-sm font-medium text-slate-800" x-text="event.title"></div>
+                                                    <div class="text-xs text-slate-500 mt-1" x-text="event.description"></div>
+                                                    <div class="text-xs text-slate-400 mt-1" x-text="event.timestamp"></div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-if="securityEvents.length === 0">
+                                            <div class="text-center py-8">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-shield-alt text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No recent security events</div>
+                                                <div class="text-xs text-slate-400 mt-1">System is operating normally</div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Security Recommendations -->
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                                <h3 class="text-lg font-semibold text-slate-800 mb-4">Security Recommendations</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i class="fas fa-info-circle text-blue-500"></i>
+                                            <h4 class="text-sm font-medium text-blue-800">Update Passwords</h4>
+                                        </div>
+                                        <p class="text-xs text-blue-600">Consider implementing password expiration policy for enhanced security</p>
+                                    </div>
+
+                                    <div class="p-4 bg-amber-50 rounded-xl border border-amber-200">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i class="fas fa-exclamation-triangle text-amber-500"></i>
+                                            <h4 class="text-sm font-medium text-amber-800">Review Access Logs</h4>
+                                        </div>
+                                        <p class="text-xs text-amber-600">Some unusual login patterns detected. Review access logs.</p>
+                                    </div>
+
+                                    <div class="p-4 bg-green-50 rounded-xl border border-green-200">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i class="fas fa-check-circle text-green-500"></i>
+                                            <h4 class="text-sm font-medium text-green-800">System Updated</h4>
+                                        </div>
+                                        <p class="text-xs text-green-600">All security patches are up to date. System is secure.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Threat Detection Tab -->
+                        <div x-show="activeTab === 'threats'" x-transition class="space-y-6">
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                <div class="px-6 py-4 border-b border-slate-200">
+                                    <h3 class="text-lg font-semibold text-slate-800">Detected Threats</h3>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-slate-50 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Threat</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Level</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Source</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Detected</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-slate-200">
+                                            <template x-for="threat in threats" :key="threat.id">
+                                                <tr class="hover:bg-slate-50 transition">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900" x-text="threat.name"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="threat.type"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="threat-level" :class="getThreatLevel(threat.level).class" x-text="getThreatLevel(threat.level).text"></span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="threat.source"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="threat.detected"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="status-badge" :class="'status-' + threat.status.toLowerCase()" x-text="threat.status"></span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                        <button @click="blockThreat(threat.id)" class="text-red-500 hover:text-red-700 transition mr-2">
+                                                            <i class="fas fa-ban"></i>
+                                                        </button>
+                                                        <button class="text-blue-500 hover:text-blue-700 transition">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <template x-if="threats.length === 0">
+                                                <tr>
+                                                    <td colspan="7" class="px-6 py-12 text-center">
+                                                        <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                            <i class="fas fa-shield-alt text-slate-400"></i>
+                                                        </div>
+                                                        <div class="text-sm text-slate-500">No threats detected</div>
+                                                        <div class="text-xs text-slate-400 mt-1">System is secure</div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Policies Tab -->
+                        <div x-show="activeTab === 'policies'" x-transition class="space-y-6">
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                <div class="px-6 py-4 border-b border-slate-200">
+                                    <h3 class="text-lg font-semibold text-slate-800">Security Policies</h3>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-slate-50 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Policy</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Category</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Last Updated</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-slate-200">
+                                            <template x-for="policy in policies" :key="policy.id">
+                                                <tr class="hover:bg-slate-50 transition">
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <div>
+                                                            <div class="text-sm font-medium text-slate-900" x-text="policy.name"></div>
+                                                            <div class="text-xs text-slate-500" x-text="policy.description"></div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="policy.category"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="status-badge" :class="'status-' + policy.status.toLowerCase()" x-text="policy.status"></span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="policy.lastUpdated"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                        <button @click="updatePolicy(policy.id)" class="text-blue-500 hover:text-blue-700 transition mr-2">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="text-green-500 hover:text-green-700 transition">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <template x-if="policies.length === 0">
+                                                <tr>
+                                                    <td colspan="5" class="px-6 py-12 text-center">
+                                                        <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                            <i class="fas fa-shield-alt text-slate-400"></i>
+                                                        </div>
+                                                        <div class="text-sm text-slate-500">No security policies configured</div>
+                                                        <div class="text-xs text-slate-400 mt-1">Add security policies to enhance system protection</div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Audit Logs Tab -->
+                        <div x-show="activeTab === 'audit'" x-transition class="space-y-6">
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                <div class="px-6 py-4 border-b border-slate-200">
+                                    <h3 class="text-lg font-semibold text-slate-800">Security Audit Logs</h3>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-slate-50 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Timestamp</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">User</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Resource</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">IP Address</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-slate-200">
+                                            <template x-for="log in auditLogs" :key="log.id">
+                                                <tr class="hover:bg-slate-50 transition">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="log.timestamp"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900" x-text="log.user"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="log.action"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="log.resource"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600" x-text="log.ipAddress"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="status-badge" :class="'status-' + log.status.toLowerCase()" x-text="log.status"></span>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <template x-if="auditLogs.length === 0">
+                                                <tr>
+                                                    <td colspan="6" class="px-6 py-12 text-center">
+                                                        <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                            <i class="fas fa-history text-slate-400"></i>
+                                                        </div>
+                                                        <div class="text-sm text-slate-500">No audit logs available</div>
+                                                        <div class="text-xs text-slate-400 mt-1">Security events will appear here</div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

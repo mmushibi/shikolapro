@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola Pro - Comprehensive University Management System</title>
+    <link rel="stylesheet" href="public/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <img src="public/images/logo.png" alt="Shikola Pro" class="logo-img">
+                </div>
+                <nav class="nav-menu">
+                    <ul>
+                        <li><a href="#home">HOME</a></li>
+                        <li><a href="#about">ABOUT</a></li>
+                        <li><a href="#features">FEATURES</a></li>
+                        <li><a href="#modules">MODULES</a></li>
+                        <li><a href="#contact">CONTACT</a></li>
+                    </ul>
+                </nav>
+                <div class="auth-buttons">
+                    <a href="src/pages/signin.html" class="btn btn-outline">SIGN IN</a>
+                    <a href="src/pages/signup.html" class="btn btn-primary">SIGN UP</a>
+                </div>
+                <div class="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-slider">
+            <div class="hero-slide active">
+                <img src="public/images/hero-1.png" alt="University Campus" class="hero-bg">
+                <div class="hero-overlay">
+                    <div class="hero-content">
+                        <div class="hero-nav">
+                            <button class="nav-btn prev" aria-label="Previous slide"><i class="fas fa-chevron-left"></i></button>
+                            <button class="nav-btn next" aria-label="Next slide"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="hero-text">
+                            <h2 class="university-name">SHIKOLA PRO</h2>
+                            <h3 class="event-title">COMPREHENSIVE UNIVERSITY MANAGEMENT SYSTEM</h3>
+                            <p class="event-description">Transforming Education Through Technology</p>
+                            <div class="hero-buttons">
+                                <a href="src/pages/signin.html" class="btn btn-primary btn-large">GET STARTED</a>
+                                <a href="#features" class="btn btn-outline btn-large">EXPLORE FEATURES</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Welcome Section -->
+    <section id="about" class="welcome">
+        <div class="container">
+            <div class="welcome-content">
+                <h2>WELCOME TO SHIKOLA PRO</h2>
+                <p class="welcome-description">
+                    Shikola Pro is a modern university management system that helps schools run better. 
+                    Our platform brings together everything schools need - student management, classes, 
+                    money tracking, and parent communication in one easy-to-use system.
+                </p>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">74+</div>
+                        <div class="stat-label">Features</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">User Portals</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Responsive</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Support</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>CORE FEATURES</h2>
+                <p>Everything you need to run your school efficiently</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Multi-Portal System</h3>
+                    <p>Separate login areas for Admin, Lecturers, Students, and Parents with the right access for each role.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3>School Management</h3>
+                    <p>Handle students from start to finish with easy-to-use tools and automatic processes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h3>Money Management</h3>
+                    <p>Track fees, send bills, and manage school finances with online payment options.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Reports & Data</h3>
+                    <p>Live dashboards and detailed reports to help you make better decisions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Phone Apps</h3>
+                    <p>Native phone apps for iPhone and Android to use the system anywhere.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Safety & Backup</h3>
+                    <p>Keep your data safe with strong security and automatic backups.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modules Section -->
+    <section id="modules" class="modules">
+        <div class="container">
+            <div class="section-header">
+                <h2>ADVANCED MODULES</h2>
+                <p>Add more features with these extra modules</p>
+            </div>
+            <div class="modules-grid">
+                <div class="module-item">
+                    <i class="fas fa-video"></i>
+                    <h4>Virtual Classroom</h4>
+                    <span>Zoom, Google Meet, Jitsi Integration</span>
+                </div>
+                <div class="module-item">
+                    <i class="fas fa-credit-card"></i>
+                    <h4>Payment Gateway</h4>
+                    <span>Razorpay, Online Payment Processing</span>
+                </div>
+                <div class="module-item">
+                    <i class="fas fa-fingerprint"></i>
+                    <h4>Biometric Attendance</h4>
+                    <span>Fingerprint & Facial Recognition</span>
+                </div>
+                <div class="module-item">
+                    <i class="fas fa-certificate"></i>
+                    <h4>Certificate Generation</h4>
+                    <span>Automated Certificate Creation</span>
+                </div>
+                <div class="module-item">
+                    <i class="fas fa-whatsapp"></i>
+                    <h4>WhatsApp Integration</h4>
+                    <span>Direct Messaging & Notifications</span>
+                </div>
+                <div class="module-item">
+                    <i class="fas fa-cloud"></i>
+                    <h4>Multi-School SaaS</h4>
+                    <span>Manage Multiple Institutions</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>READY TO TRANSFORM YOUR INSTITUTION?</h2>
+                <p>Join thousands of educational institutions already using Shikola Pro</p>
+                <div class="cta-buttons">
+                    <a href="src/pages/signup.html" class="btn btn-primary btn-large">START FREE TRIAL</a>
+                    <a href="#contact" class="btn btn-outline btn-large">REQUEST DEMO</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact-form" class="contact-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>GET IN TOUCH</h2>
+                <p>Have questions? We'd love to hear from you</p>
+            </div>
+            <div class="contact-form-container">
+                <div class="contact-form">
+                    <form id="contactForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="contactName">Full Name</label>
+                                <input type="text" id="contactName" name="name" placeholder="Enter your full name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactEmail">Email Address</label>
+                                <input type="email" id="contactEmail" name="email" placeholder="Enter your email" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactSubject">Subject</label>
+                            <input type="text" id="contactSubject" name="subject" placeholder="What's this about?" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactMessage">Message</label>
+                            <textarea id="contactMessage" name="message" placeholder="Tell us more about your inquiry..." rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="btn-text">Send Message</span>
+                            <i class="fas fa-spinner fa-spin loading-spinner"></i>
+                        </button>
+                    </form>
+                </div>
+                <div class="contact-info">
+                    <div class="info-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h4>Email Us</h4>
+                            <p>support@shikolapro.com</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h4>Call Us</h4>
+                            <p>+260 976 735 481</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h4>Visit Us</h4>
+                            <p>Kasama, Zambia</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h4>Business Hours</h4>
+                            <p>Monday - Friday: 8:00 AM - 6:00 PM</p>
+                            <p>Saturday: 9:00 AM - 2:00 PM</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="public/images/logo.png" alt="Shikola Pro" class="footer-logo-img">
+                       </div>
+                    <p class="footer-description">
+                        Complete university management system for modern educational institutions.
+                    </p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#modules">Modules</a></li>
+                        <li><a href="#">Pricing</a></li>
+                        <li><a href="#">Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">System Status</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact Info</h4>
+                    <div class="contact-info">
+                        <p><i class="fas fa-envelope"></i> support@shikolapro.com</p>
+                        <p><i class="fas fa-phone"></i> +260 976 735 481</p>
+                        <p><i class="fas fa-map-marker-alt"></i> Kasama, Zambia</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Shikola. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="public/js/main.js"></script>
+</body>
+</html>

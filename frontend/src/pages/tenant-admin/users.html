@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - User Management</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="/shared-assets/js/tenant-admin-save-utility.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+    <style>
+        /* Font family setup */
+        body {
+            font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Consistent font sizes */
+        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-sm { font-size: 0.825rem !important; line-height: 1.125rem !important; }
+        .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .text-lg { font-size: 0.925rem !important; line-height: 1.375rem !important; }
+        .text-xl { font-size: 0.975rem !important; line-height: 1.5rem !important; }
+        .text-2xl { font-size: 1.025rem !important; line-height: 1.625rem !important; }
+        .text-3xl { font-size: 1.075rem !important; line-height: 1.75rem !important; }
+
+        /* Override any larger font sizes */
+        .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+
+        /* Custom scrollbar to match app theme */
+        body, body * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        body::-webkit-scrollbar,
+        body *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        body::-webkit-scrollbar-track,
+        body *::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        body::-webkit-scrollbar-thumb,
+        body *::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #f97316, #ea580c);
+            border-radius: 9999px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover,
+        body *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ea580c, #c2410c);
+        }
+
+        /* Custom animations */
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Ensure consistent small text throughout */
+        h1 { font-size: 1.25rem !important; }
+        h2 { font-size: 1.125rem !important; }
+        h3 { font-size: 1rem !important; }
+        h4 { font-size: 0.925rem !important; }
+        h5 { font-size: 0.875rem !important; }
+        h6 { font-size: 0.825rem !important; }
+        
+        /* Input and button text sizes */
+        input, button, select, textarea {
+            font-size: 0.825rem !important;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #f97316;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal styles */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div x-data="userManagement()" x-init="init()">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <button @click="window.history.back()" class="text-gray-500 hover:text-gray-700 mr-4">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <h1 class="text-xl font-semibold text-gray-900">User Management</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="showAddUserModal = true" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                            <i class="fas fa-plus"></i>
+                            <span>Add User</span>
+                        </button>
+                        <div class="relative">
+                            <button @click="showUserMenu = !showUserMenu" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+                                <i class="fas fa-user-circle text-2xl"></i>
+                                <span x-text="currentUser?.name || 'User'"></span>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            <div x-show="showUserMenu" @click.away="showUserMenu = false" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                <a href="/frontend/src/pages/tenant-admin/home.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
+                                <button @click="logout()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Search and Filters -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search Users</label>
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                x-model="searchQuery"
+                                @input="debounceSearch()"
+                                placeholder="Search by name or email..."
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Role Filter</label>
+                        <select x-model="roleFilter" @change="loadUsers()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Roles</option>
+                            <option value="staff">Staff</option>
+                            <option value="student">Student</option>
+                            <option value="parent">Parent</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select x-model="statusFilter" @change="loadUsers()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Status</option>
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Users</h2>
+                    <p class="text-sm text-gray-500">Manage user accounts and permissions</p>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <template x-if="loading">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12 text-center">
+                                        <div class="flex justify-center items-center space-x-2">
+                                            <div class="spinner"></div>
+                                            <span class="text-gray-500">Loading users...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                            
+                            <template x-if="!loading && users.length === 0">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                                        <i class="fas fa-users text-4xl mb-4 block text-gray-300"></i>
+                                        No users found
+                                    </td>
+                                </tr>
+                            </template>
+
+                            <template x-for="user in users" :key="user.id">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
+                                                    <span class="text-white font-medium" x-text="user.name.charAt(0).toUpperCase()"></span>
+                                                </div>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900" x-text="user.name"></div>
+                                                <div class="text-sm text-gray-500" x-text="user.email"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" 
+                                              :class="getRoleBadgeClass(user.role)"
+                                              x-text="formatRole(user.role)"></span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                              :class="user.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                                              x-text="user.active ? 'Active' : 'Inactive'"></span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <span x-text="formatDate(user.createdAt)"></span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button @click="editUser(user)" class="text-blue-600 hover:text-blue-900 mr-3">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button @click="deleteUser(user)" class="text-red-600 hover:text-red-900">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="px-6 py-4 border-t border-gray-200" x-show="pagination.totalPages > 1">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Showing <span x-text="(pagination.page - 1) * pagination.limit + 1"></span> to 
+                            <span x-text="Math.min(pagination.page * pagination.limit, pagination.total)"></span> of 
+                            <span x-text="pagination.total"></span> results
+                        </div>
+                        <div class="flex space-x-2">
+                            <button @click="previousPage()" 
+                                    :disabled="pagination.page <= 1"
+                                    class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                Previous
+                            </button>
+                            <span class="px-3 py-1 text-sm" x-text="`Page ${pagination.page} of ${pagination.totalPages}`"></span>
+                            <button @click="nextPage()" 
+                                    :disabled="pagination.page >= pagination.totalPages"
+                                    class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Add/Edit User Modal -->
+        <div x-show="showAddUserModal || showEditUserModal" 
+             class="fixed inset-0 z-50 overflow-y-auto"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity modal-backdrop" @click="closeModals()"></div>
+                
+                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <form @submit.prevent="showEditUserModal ? updateUser() : createUser()">
+                        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                            <div class="mb-4">
+                                <h3 class="text-lg font-medium text-gray-900" x-text="showEditUserModal ? 'Edit User' : 'Add New User'"></h3>
+                                <p class="text-sm text-gray-500" x-text="showEditUserModal ? 'Update user information' : 'Create a new user account'"></p>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                    <input type="text" x-model="userForm.name" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                    <input type="email" x-model="userForm.email" required
+                                           :disabled="showEditUserModal"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                    <select x-model="userForm.role" required
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">Select Role</option>
+                                        <option value="staff">Staff</option>
+                                        <option value="student">Student</option>
+                                        <option value="parent">Parent</option>
+                                    </select>
+                                </div>
+                                
+                                <div x-show="!showEditUserModal">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                    <input type="password" x-model="userForm.password" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                
+                                <div>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" x-model="userForm.active" 
+                                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700">Active User</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                            <button type="submit" 
+                                    :disabled="saving"
+                                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
+                                <span x-show="!saving" x-text="showEditUserModal ? 'Update User' : 'Create User'"></span>
+                                <span x-show="saving">
+                                    <div class="spinner inline-block w-4 h-4 mr-2"></div>
+                                    Saving...
+                                </span>
+                            </button>
+                            <button type="button" @click="closeModals()" 
+                                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div x-show="showDeleteModal" 
+             class="fixed inset-0 z-50 overflow-y-auto"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity modal-backdrop" @click="showDeleteModal = false"></div>
+                
+                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <i class="fas fa-exclamation-triangle text-red-600"></i>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">Delete User</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500">
+                                        Are you sure you want to delete <span x-text="userToDelete?.name" class="font-medium"></span>? 
+                                        This action cannot be undone.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button @click="confirmDelete()" 
+                                :disabled="deleting"
+                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
+                            <span x-show="!deleting">Delete User</span>
+                            <span x-show="deleting">
+                                <div class="spinner inline-block w-4 h-4 mr-2"></div>
+                                Deleting...
+                            </span>
+                        </button>
+                        <button @click="showDeleteModal = false" 
+                                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div x-show="toast.show" 
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform translate-x-full"
+             x-transition:enter-end="opacity-100 transform translate-x-0"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform translate-x-0"
+             x-transition:leave-end="opacity-0 transform translate-x-full"
+             class="toast">
+            <div class="rounded-lg shadow-lg p-4" :class="toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500'">
+                <div class="flex items-center">
+                    <i :class="toast.type === 'success' ? 'fas fa-check-circle' : toast.type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle'" class="text-white mr-3"></i>
+                    <div class="text-white">
+                        <p class="font-medium" x-text="toast.title"></p>
+                        <p class="text-sm" x-text="toast.message"></p>
+                    </div>
+                    <button @click="toast.show = false" class="ml-auto text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function userManagement() {
+            return {
+                users: [],
+                currentUser: null,
+                loading: false,
+                saving: false,
+                deleting: false,
+                searchQuery: '',
+                roleFilter: '',
+                statusFilter: '',
+                showUserMenu: false,
+                showAddUserModal: false,
+                showEditUserModal: false,
+                showDeleteModal: false,
+                userToDelete: null,
+                userForm: {
+                    name: '',
+                    email: '',
+                    password: '',
+                    role: '',
+                    active: true
+                },
+                pagination: {
+                    page: 1,
+                    limit: 10,
+                    total: 0,
+                    totalPages: 0
+                },
+                toast: {
+                    show: false,
+                    type: 'success',
+                    title: '',
+                    message: ''
+                },
+                searchTimeout: null,
+
+                async init() {
+                    await this.loadCurrentUser();
+                    await this.loadUsers();
+                },
+
+                async loadCurrentUser() {
+                    try {
+                        this.currentUser = await window.sharedApiClient.getCurrentUser();
+                    } catch (error) {
+                        console.error('Error loading current user:', error);
+                        this.showToast('error', 'Error', 'Failed to load user information');
+                    }
+                },
+
+                async loadUsers() {
+                    this.loading = true;
+                    try {
+                        const params = {
+                            page: this.pagination.page,
+                            limit: this.pagination.limit
+                        };
+
+                        if (this.searchQuery) params.search = this.searchQuery;
+                        if (this.roleFilter) params.role = this.roleFilter;
+                        if (this.statusFilter) params.status = this.statusFilter;
+
+                        const response = await window.sharedApiClient.getUsers(params);
+                        this.users = response.users || response;
+                        this.pagination.total = response.total || this.users.length;
+                        this.pagination.totalPages = response.totalPages || Math.ceil(this.pagination.total / this.pagination.limit);
+                    } catch (error) {
+                        console.error('Error loading users:', error);
+                        this.showToast('error', 'Error', 'Failed to load users');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                debounceSearch() {
+                    clearTimeout(this.searchTimeout);
+                    this.searchTimeout = setTimeout(() => {
+                        this.pagination.page = 1;
+                        this.loadUsers();
+                    }, 500);
+                },
+
+                async createUser() {
+                    this.saving = true;
+                    try {
+                        await window.sharedApiClient.createUser(this.userForm);
+                        this.showToast('success', 'Success', 'User created successfully');
+                        this.closeModals();
+                        await this.loadUsers();
+                    } catch (error) {
+                        console.error('Error creating user:', error);
+                        this.showToast('error', 'Error', error.message || 'Failed to create user');
+                    } finally {
+                        this.saving = false;
+                    }
+                },
+
+                editUser(user) {
+                    this.userForm = { ...user };
+                    this.showEditUserModal = true;
+                },
+
+                async updateUser() {
+                    this.saving = true;
+                    try {
+                        await window.sharedApiClient.updateUser(this.userForm.id, this.userForm);
+                        this.showToast('success', 'Success', 'User updated successfully');
+                        this.closeModals();
+                        await this.loadUsers();
+                    } catch (error) {
+                        console.error('Error updating user:', error);
+                        this.showToast('error', 'Error', error.message || 'Failed to update user');
+                    } finally {
+                        this.saving = false;
+                    }
+                },
+
+                deleteUser(user) {
+                    this.userToDelete = user;
+                    this.showDeleteModal = true;
+                },
+
+                async confirmDelete() {
+                    this.deleting = true;
+                    try {
+                        await window.sharedApiClient.deleteUser(this.userToDelete.id);
+                        this.showToast('success', 'Success', 'User deleted successfully');
+                        this.showDeleteModal = false;
+                        await this.loadUsers();
+                    } catch (error) {
+                        console.error('Error deleting user:', error);
+                        this.showToast('error', 'Error', error.message || 'Failed to delete user');
+                    } finally {
+                        this.deleting = false;
+                    }
+                },
+
+                closeModals() {
+                    this.showAddUserModal = false;
+                    this.showEditUserModal = false;
+                    this.showDeleteModal = false;
+                    this.userForm = {
+                        name: '',
+                        email: '',
+                        password: '',
+                        role: '',
+                        active: true
+                    };
+                },
+
+                previousPage() {
+                    if (this.pagination.page > 1) {
+                        this.pagination.page--;
+                        this.loadUsers();
+                    }
+                },
+
+                nextPage() {
+                    if (this.pagination.page < this.pagination.totalPages) {
+                        this.pagination.page++;
+                        this.loadUsers();
+                    }
+                },
+
+                showToast(type, title, message) {
+                    this.toast = { show: true, type, title, message };
+                    setTimeout(() => {
+                        this.toast.show = false;
+                    }, 5000);
+                },
+
+                formatRole(role) {
+                    const roleMap = {
+                        'staff': 'Staff',
+                        'student': 'Student',
+                        'parent': 'Parent',
+                        'tenant-admin': 'Tenant Admin',
+                        'operations-admin': 'Operations Admin',
+                        'system-admin': 'System Admin'
+                    };
+                    return roleMap[role] || role;
+                },
+
+                getRoleBadgeClass(role) {
+                    const classMap = {
+                        'staff': 'bg-blue-100 text-blue-800',
+                        'student': 'bg-green-100 text-green-800',
+                        'parent': 'bg-purple-100 text-purple-800',
+                        'tenant-admin': 'bg-yellow-100 text-yellow-800',
+                        'operations-admin': 'bg-orange-100 text-orange-800',
+                        'system-admin': 'bg-red-100 text-red-800'
+                    };
+                    return classMap[role] || 'bg-gray-100 text-gray-800';
+                },
+
+                formatDate(dateString) {
+                    if (!dateString) return 'N/A';
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                    });
+                },
+
+                async logout() {
+                    try {
+                        await window.sharedApiClient.logout();
+                        window.location.href = '/frontend/src/pages/signin.html';
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                        window.location.href = '/frontend/src/pages/signin.html';
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+
+        /* Badge and label text */
+        .badge, .label {
+            font-size: 0.7rem !important;
+        }
+
+        /* Tab styles */
+        .tab-button {
+            position: relative;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to right, #f97316, #ea580c);
+            border-radius: 2px 2px 0 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        mobileSearchOpen: false,
+        mobileNotificationsOpen: false,
+        mobileProfileOpen: false,
+        mobileSearchQuery: '',
+        pageTitle: 'User Management',
+        pageSubtitle: 'Manage students, lecturers, and staff',
+        activeTab: 'students',
+        notifications: [],
+        
+        // User data
+        students: [],
+        lecturers: [],
+        staff: [],
+        showAddStudent: false,
+        showAddLecturer: false,
+        showAddStaff: false,
+        
+        // Student form data
+        newStudentFirstName: '',
+        newStudentLastName: '',
+        newStudentEmail: '',
+        newStudentPhone: '',
+        newStudentGrade: '',
+        newStudentSection: '',
+        
+        // Lecturer form data
+        newLecturerFirstName: '',
+        newLecturerLastName: '',
+        newLecturerEmail: '',
+        newLecturerPhone: '',
+        newLecturerDepartment: '',
+        newLecturerSpecialization: '',
+        
+        // Staff form data
+        newStaffFirstName: '',
+        newStaffLastName: '',
+        newStaffEmail: '',
+        newStaffPhone: '',
+        newStaffDepartment: '',
+        newStaffRole: '',
+        
+        // Common methods
+        init() {
+            // Initialize data
+            this.loadSampleData();
+        },
+        
+        loadSampleData() {
+            // Initialize empty arrays - no mock data
+        },
+        
+        // Tab management
+        switchTab(tab) {
+            console.log('Switching to tab:', tab);
+            this.activeTab = tab;
+        },
+        
+        // Student methods
+        addStudent() {
+            console.log('Adding student:', this.newStudentFirstName, this.newStudentLastName);
+            if (this.newStudentFirstName && this.newStudentLastName && this.newStudentEmail && this.newStudentGrade) {
+                this.students.unshift({
+                    id: Date.now(),
+                    firstName: this.newStudentFirstName,
+                    lastName: this.newStudentLastName,
+                    email: this.newStudentEmail,
+                    phone: this.newStudentPhone,
+                    grade: this.newStudentGrade,
+                    section: this.newStudentSection,
+                    status: 'Active',
+                    enrollmentDate: new Date().toISOString().split('T')[0]
+                });
+                this.newStudentFirstName = '';
+                this.newStudentLastName = '';
+                this.newStudentEmail = '';
+                this.newStudentPhone = '';
+                this.newStudentGrade = '';
+                this.newStudentSection = '';
+                this.showAddStudent = false;
+                console.log('Student added successfully');
+            }
+        },
+        
+        deleteStudent(id) {
+            console.log('Deleting student:', id);
+            this.students = this.students.filter(s => s.id !== id);
+        },
+        
+        // Lecturer methods
+        addLecturer() {
+            console.log('Adding lecturer:', this.newLecturerFirstName, this.newLecturerLastName);
+            if (this.newLecturerFirstName && this.newLecturerLastName && this.newLecturerEmail && this.newLecturerDepartment) {
+                this.lecturers.unshift({
+                    id: Date.now(),
+                    firstName: this.newLecturerFirstName,
+                    lastName: this.newLecturerLastName,
+                    email: this.newLecturerEmail,
+                    phone: this.newLecturerPhone,
+                    department: this.newLecturerDepartment,
+                    specialization: this.newLecturerSpecialization,
+                    status: 'Active',
+                    hireDate: new Date().toISOString().split('T')[0]
+                });
+                this.newLecturerFirstName = '';
+                this.newLecturerLastName = '';
+                this.newLecturerEmail = '';
+                this.newLecturerPhone = '';
+                this.newLecturerDepartment = '';
+                this.newLecturerSpecialization = '';
+                this.showAddLecturer = false;
+                console.log('Lecturer added successfully');
+            }
+        },
+        
+        deleteLecturer(id) {
+            console.log('Deleting lecturer:', id);
+            this.lecturers = this.lecturers.filter(l => l.id !== id);
+        },
+        
+        // Staff methods
+        addStaff() {
+            console.log('Adding staff:', this.newStaffFirstName, this.newStaffLastName);
+            if (this.newStaffFirstName && this.newStaffLastName && this.newStaffEmail && this.newStaffDepartment) {
+                this.staff.unshift({
+                    id: Date.now(),
+                    firstName: this.newStaffFirstName,
+                    lastName: this.newStaffLastName,
+                    email: this.newStaffEmail,
+                    phone: this.newStaffPhone,
+                    department: this.newStaffDepartment,
+                    role: this.newStaffRole,
+                    status: 'Active',
+                    hireDate: new Date().toISOString().split('T')[0]
+                });
+                this.newStaffFirstName = '';
+                this.newStaffLastName = '';
+                this.newStaffEmail = '';
+                this.newStaffPhone = '';
+                this.newStaffDepartment = '';
+                this.newStaffRole = '';
+                this.showAddStaff = false;
+                console.log('Staff added successfully');
+            }
+        },
+        
+        deleteStaff(id) {
+            console.log('Deleting staff:', id);
+            this.staff = this.staff.filter(s => s.id !== id);
+        },
+        
+        unreadCount() {
+            return this.notifications.filter(n => !n.read).length;
+        }
+    }" x-init="init()" class="min-h-screen flex">
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="academics.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-graduation-cap"></i>
+                            </span>
+                            <span class="flex-1">Academics</span>
+                        </a>
+                        <a href="finance.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-line"></i>
+                            </span>
+                            <span class="flex-1">Finance</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-users"></i>
+                            </span>
+                            <span class="font-medium flex-1">Users</span>
+                        </a>
+                        <a href="campus-resources.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-building"></i>
+                            </span>
+                            <span class="flex-1">Campus Resources</span>
+                        </a>
+                        <a href="communications.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-comments"></i>
+                            </span>
+                            <span class="flex-1">Communications</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports & Analytics</span>
+                        </a>
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="flex-1">Settings</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Approval Request Card -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Lecturer Request</h4>
+                        <p class="text-xs opacity-90 mb-3">Request for join lecturer, need approval for access</p>
+                        <div class="flex gap-2">
+                            <button class="flex-1 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Decline
+                            </button>
+                            <button class="flex-1 bg-white text-purple-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Approve
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                   <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="academics.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-graduation-cap"></i>
+                            </span>
+                            <span class="flex-1">Academics</span>
+                        </a>
+                        <a href="finance.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-line"></i>
+                            </span>
+                            <span class="flex-1">Finance</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-users"></i>
+                            </span>
+                            <span class="font-medium flex-1">Users</span>
+                        </a>
+                        <a href="campus-resources.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-building"></i>
+                            </span>
+                            <span class="flex-1">Campus Resources</span>
+                        </a>
+                        <a href="communications.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-comments"></i>
+                            </span>
+                            <span class="flex-1">Communications</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports & Analytics</span>
+                        </a>
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="flex-1">Settings</span>
+                        </a>
+                    </div>
+                </nav>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7 h-full flex flex-col">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-100 pb-3">
+                        <div class="flex items-center justify-center w-full lg:w-auto lg:justify-start gap-3">
+                            <button type="button" @click="sidebarOpen = true" class="lg:hidden fixed top-4 left-4 z-50 h-9 w-9 rounded-xl bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="relative">
+                                <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-14 w-auto rounded-2xl lg:hidden">
+                                <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                            </div>
+                            <div class="hidden lg:block">
+                                <h1 class="text-2xl sm:text-3xl font-semibold text-slate-800">User Management</h1>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1 hidden sm:block">Manage students, lecturers, and staff</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hidden sm:flex items-center gap-3">
+                            <!-- Search Bar -->
+                            <div class="relative hidden sm:flex items-center bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 w-64">
+                                <i class="fas fa-search text-slate-400 text-sm mr-2"></i>
+                                <input type="text" placeholder="Search users..." class="bg-transparent text-sm text-slate-600 placeholder-slate-400 focus:outline-none flex-1">
+                            </div>
+
+                            <!-- Notifications -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" title="Notifications" class="relative h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                                    <i class="fas fa-bell"></i>
+                                    <span x-show="unreadCount() > 0" x-text="unreadCount()" class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"></span>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                        <h3 class="font-semibold text-slate-800">Notifications</h3>
+                                        <div class="flex gap-2">
+                                            <button @click="notifications.forEach(n => n.read = true)" title="Mark all notifications as read" class="text-xs text-orange-500 hover:text-orange-600 font-medium">Read All</button>
+                                            <button @click="notifications = []" class="text-xs text-red-500 hover:text-red-600 font-medium">Clear</button>
+                                        </div>
+                                    </div>
+                                    <div class="max-h-96 overflow-y-auto">
+                                        <template x-if="notifications.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-bell text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No notifications yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">You're all caught up!</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="notification in notifications" :key="notification.id">
+                                            <div class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition cursor-pointer">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="h-2 w-2 rounded-full mt-2" :class="notification.read ? 'bg-slate-300' : 'bg-orange-500'"></div>
+                                                    <div class="flex-1">
+                                                        <div class="font-medium text-slate-800 text-sm" x-text="notification.title"></div>
+                                                        <div class="text-slate-500 text-xs mt-1" x-text="notification.message"></div>
+                                                        <div class="text-slate-400 text-xs mt-1" x-text="notification.time"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Profile -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition">
+                                    <div class="h-8 w-8 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white">
+                                        <i class="fas fa-user text-sm"></i>
+                                    </div>
+                                    <div class="hidden sm:block text-left">
+                                        <div class="font-medium text-slate-800 text-sm">Administrator</div>
+                                        <div class="text-slate-500 text-xs">Admin</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                                        <i class="fas fa-user text-slate-400"></i>
+                                        <span class="text-sm text-slate-700">Profile</span>
+                                    </a>
+                                    <button @click="window.logout()" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-500 transition">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span class="text-sm">Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs Navigation -->
+                    <div class="flex border-b border-slate-200 mt-6">
+                        <button @click="switchTab('students')" 
+                                :class="activeTab === 'students' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors tab-button">
+                            <i class="fas fa-user-graduate mr-2"></i>
+                            Students
+                        </button>
+                        <button @click="switchTab('lecturers')" 
+                                :class="activeTab === 'lecturers' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors tab-button">
+                            <i class="fas fa-chalkboard-teacher mr-2"></i>
+                            Lecturers
+                        </button>
+                        <button @click="switchTab('staff')" 
+                                :class="activeTab === 'staff' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors tab-button">
+                            <i class="fas fa-user-tie mr-2"></i>
+                            Staff
+                        </button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="flex-1 overflow-y-auto">
+                        <!-- Students Tab -->
+                        <div x-show="activeTab === 'students'" class="mt-6">
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-sm font-semibold text-slate-800">Student Management</h3>
+                                    <button @click="showAddStudent = !showAddStudent" class="px-3 py-1.5 bg-orange-100 text-orange-500 rounded-lg text-xs font-medium hover:bg-orange-200 transition">
+                                        <i class="fas fa-plus mr-1"></i>Add Student
+                                    </button>
+                                </div>
+                                
+                                <!-- Add Student Form -->
+                                <div x-show="showAddStudent" x-transition class="mb-4 p-4 bg-slate-50 rounded-xl">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <input x-model="newStudentFirstName" type="text" placeholder="First name" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newStudentLastName" type="text" placeholder="Last name" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newStudentEmail" type="email" placeholder="Email address" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newStudentPhone" type="tel" placeholder="Phone number" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newStudentGrade" type="text" placeholder="Grade/Class" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newStudentSection" type="text" placeholder="Section" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                    </div>
+                                    <div class="flex gap-2 mt-3">
+                                        <button @click="addStudent()" class="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition">
+                                            Add Student
+                                        </button>
+                                        <button @click="showAddStudent = false; newStudentFirstName = ''; newStudentLastName = ''; newStudentEmail = ''; newStudentPhone = ''; newStudentGrade = ''; newStudentSection = ''" class="px-3 py-1.5 bg-slate-200 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-300 transition">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Students Grid -->
+                                <div class="space-y-3">
+                                    <template x-if="students.length === 0">
+                                        <div class="px-4 py-8 text-center">
+                                            <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                <i class="fas fa-user-graduate text-slate-400"></i>
+                                            </div>
+                                            <div class="text-sm text-slate-500">No students yet</div>
+                                            <div class="text-xs text-slate-400 mt-1">Add your first student to get started</div>
+                                        </div>
+                                    </template>
+                                    <template x-for="student in students" :key="student.id">
+                                        <div class="relative group flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition">
+                                            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white">
+                                                <i class="fas fa-user-graduate"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="font-medium text-slate-800 text-sm" x-text="student.firstName + ' ' + student.lastName"></div>
+                                                <div class="text-xs text-slate-500">Email: <span x-text="student.email"></span></div>
+                                                <div class="text-xs text-slate-400">Grade: <span x-text="student.grade"></span> • Section: <span x-text="student.section || 'N/A'"></span></div>
+                                            </div>
+                                            <span class="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium" x-text="student.status"></span>
+                                            <button @click="deleteStudent(student.id)" class="opacity-0 group-hover:opacity-100 transition h-6 w-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center text-xs">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lecturers Tab -->
+                        <div x-show="activeTab === 'lecturers'" class="mt-6">
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-sm font-semibold text-slate-800">Lecturer Management</h3>
+                                    <button @click="showAddLecturer = !showAddLecturer" class="px-3 py-1.5 bg-orange-100 text-orange-500 rounded-lg text-xs font-medium hover:bg-orange-200 transition">
+                                        <i class="fas fa-plus mr-1"></i>Add Lecturer
+                                    </button>
+                                </div>
+                                
+                                <!-- Add Lecturer Form -->
+                                <div x-show="showAddLecturer" x-transition class="mb-4 p-4 bg-slate-50 rounded-xl">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <input x-model="newLecturerFirstName" type="text" placeholder="First name" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newLecturerLastName" type="text" placeholder="Last name" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newLecturerEmail" type="email" placeholder="Email address" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newLecturerPhone" type="tel" placeholder="Phone number" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newLecturerDepartment" type="text" placeholder="Department" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newLecturerSpecialization" type="text" placeholder="Specialization" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                    </div>
+                                    <div class="flex gap-2 mt-3">
+                                        <button @click="addLecturer()" class="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition">
+                                            Add Lecturer
+                                        </button>
+                                        <button @click="showAddLecturer = false; newLecturerFirstName = ''; newLecturerLastName = ''; newLecturerEmail = ''; newLecturerPhone = ''; newLecturerDepartment = ''; newLecturerSpecialization = ''" class="px-3 py-1.5 bg-slate-200 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-300 transition">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Lecturers Grid -->
+                                <div class="space-y-3">
+                                    <template x-if="lecturers.length === 0">
+                                        <div class="px-4 py-8 text-center">
+                                            <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                <i class="fas fa-chalkboard-teacher text-slate-400"></i>
+                                            </div>
+                                            <div class="text-sm text-slate-500">No lecturers yet</div>
+                                            <div class="text-xs text-slate-400 mt-1">Add your first lecturer to get started</div>
+                                        </div>
+                                    </template>
+                                    <template x-for="lecturer in lecturers" :key="lecturer.id">
+                                        <div class="relative group flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition">
+                                            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white">
+                                                <i class="fas fa-chalkboard-teacher"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="font-medium text-slate-800 text-sm" x-text="lecturer.firstName + ' ' + lecturer.lastName"></div>
+                                                <div class="text-xs text-slate-500">Email: <span x-text="lecturer.email"></span></div>
+                                                <div class="text-xs text-slate-400">Department: <span x-text="lecturer.department"></span> • <span x-text="lecturer.specialization || 'N/A'"></span></div>
+                                            </div>
+                                            <span class="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium" x-text="lecturer.status"></span>
+                                            <button @click="deleteLecturer(lecturer.id)" class="opacity-0 group-hover:opacity-100 transition h-6 w-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center text-xs">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Staff Tab -->
+                        <div x-show="activeTab === 'staff'" class="mt-6">
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-sm font-semibold text-slate-800">Staff Management</h3>
+                                    <button @click="showAddStaff = !showAddStaff" class="px-3 py-1.5 bg-orange-100 text-orange-500 rounded-lg text-xs font-medium hover:bg-orange-200 transition">
+                                        <i class="fas fa-plus mr-1"></i>Add Staff
+                                    </button>
+                                </div>
+                                
+                                <!-- Add Staff Form -->
+                                <div x-show="showAddStaff" x-transition class="mb-4 p-4 bg-slate-50 rounded-xl">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <input x-model="newStaffFirstName" type="text" placeholder="First name" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newStaffLastName" type="text" placeholder="Last name" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newStaffEmail" type="email" placeholder="Email address" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newStaffPhone" type="tel" placeholder="Phone number" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newStaffDepartment" type="text" placeholder="Department" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <input x-model="newStaffRole" type="text" placeholder="Role/Position" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                    </div>
+                                    <div class="flex gap-2 mt-3">
+                                        <button @click="addStaff()" class="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition">
+                                            Add Staff
+                                        </button>
+                                        <button @click="showAddStaff = false; newStaffFirstName = ''; newStaffLastName = ''; newStaffEmail = ''; newStaffPhone = ''; newStaffDepartment = ''; newStaffRole = ''" class="px-3 py-1.5 bg-slate-200 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-300 transition">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Staff Grid -->
+                                <div class="space-y-3">
+                                    <template x-if="staff.length === 0">
+                                        <div class="px-4 py-8 text-center">
+                                            <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                <i class="fas fa-user-tie text-slate-400"></i>
+                                            </div>
+                                            <div class="text-sm text-slate-500">No staff members yet</div>
+                                            <div class="text-xs text-slate-400 mt-1">Add your first staff member to get started</div>
+                                        </div>
+                                    </template>
+                                    <template x-for="staffMember in staff" :key="staffMember.id">
+                                        <div class="relative group flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition">
+                                            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white">
+                                                <i class="fas fa-user-tie"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="font-medium text-slate-800 text-sm" x-text="staffMember.firstName + ' ' + staffMember.lastName"></div>
+                                                <div class="text-xs text-slate-500">Email: <span x-text="staffMember.email"></span></div>
+                                                <div class="text-xs text-slate-400">Department: <span x-text="staffMember.department"></span> • Role: <span x-text="staffMember.role"></span></div>
+                                            </div>
+                                            <span class="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium" x-text="staffMember.status"></span>
+                                            <button @click="deleteStaff(staffMember.id)" class="opacity-0 group-hover:opacity-100 transition h-6 w-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center text-xs">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentDate = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            console.log('Users page loaded on:', currentDate.toLocaleDateString('en-US', options));
+        });
+
+        // Alpine.js enhancements for User Management
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('userManagement', () => ({
+                // Enhanced functionality for user management
+                users: [],
+                loading: false,
+                searchQuery: '',
+                roleFilter: '',
+                statusFilter: '',
+                showAddUserModal: false,
+                showEditUserModal: false,
+                showUserMenu: false,
+                selectedUser: null,
+                currentUser: null,
+                
+                // User form data
+                newUser: {
+                    name: '',
+                    email: '',
+                    role: 'student',
+                    status: true,
+                    phone: '',
+                    address: '',
+                    dateOfBirth: '',
+                    grade: '',
+                    section: '',
+                    parentEmail: '',
+                    emergencyContact: '',
+                    password: '',
+                    confirmPassword: ''
+                },
+
+                init() {
+                    this.loadUsers();
+                    this.loadCurrentUser();
+                },
+
+                async loadUsers() {
+                    this.loading = true;
+                    try {
+                        let url = '/users';
+                        const params = new URLSearchParams();
+                        
+                        if (this.roleFilter) params.append('role', this.roleFilter);
+                        if (this.statusFilter !== '') params.append('status', this.statusFilter);
+                        if (this.searchQuery) params.append('search', this.searchQuery);
+                        
+                        if (params.toString()) {
+                            url += '?' + params.toString();
+                        }
+
+                        const response = await window.sharedApiClient.request(url);
+                        if (response.ok) {
+                            this.users = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Error loading users:', error);
+                        window.tenantAdminSave.showError('Failed to load users');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async loadCurrentUser() {
+                    try {
+                        const response = await window.sharedApiClient.request('/auth/me');
+                        if (response.ok) {
+                            this.currentUser = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Error loading current user:', error);
+                    }
+                },
+
+                // Enhanced user management
+                async addUser() {
+                    if (!this.validateUserForm()) {
+                        return;
+                    }
+
+                    const userData = {
+                        name: this.newUser.name.trim(),
+                        email: this.newUser.email.trim(),
+                        role: this.newUser.role,
+                        status: this.newUser.status,
+                        phone: this.newUser.phone.trim(),
+                        address: this.newUser.address.trim(),
+                        dateOfBirth: this.newUser.dateOfBirth,
+                        grade: this.newUser.grade,
+                        section: this.newUser.section,
+                        parentEmail: this.newUser.parentEmail.trim(),
+                        emergencyContact: this.newUser.emergencyContact.trim(),
+                        password: this.newUser.password
+                    };
+
+                    const result = await window.tenantAdminSave.saveUser(userData);
+                    
+                    if (result.success) {
+                        this.users.unshift({
+                            id: result.data.id || Date.now(),
+                            ...userData,
+                            createdAt: new Date().toISOString(),
+                            lastLogin: null
+                        });
+
+                        // Reset form
+                        this.resetUserForm();
+                        this.showAddUserModal = false;
+                    }
+                },
+
+                async updateUser() {
+                    if (!this.selectedUser || !this.validateUserForm()) {
+                        return;
+                    }
+
+                    const updateData = {
+                        name: this.newUser.name.trim(),
+                        email: this.newUser.email.trim(),
+                        role: this.newUser.role,
+                        status: this.newUser.status,
+                        phone: this.newUser.phone.trim(),
+                        address: this.newUser.address.trim(),
+                        dateOfBirth: this.newUser.dateOfBirth,
+                        grade: this.newUser.grade,
+                        section: this.newUser.section,
+                        parentEmail: this.newUser.parentEmail.trim(),
+                        emergencyContact: this.newUser.emergencyContact.trim()
+                    };
+
+                    // Only include password if it's provided
+                    if (this.newUser.password) {
+                        updateData.password = this.newUser.password;
+                    }
+
+                    const result = await window.tenantAdminSave.saveData(`/users/${this.selectedUser.id}`, updateData, {
+                        successMessage: 'User updated successfully!',
+                        errorMessage: 'Failed to update user'
+                    });
+
+                    if (result.success) {
+                        // Update user in list
+                        const index = this.users.findIndex(u => u.id === this.selectedUser.id);
+                        if (index > -1) {
+                            this.users[index] = {
+                                ...this.users[index],
+                                ...updateData,
+                                updatedAt: new Date().toISOString()
+                            };
+                        }
+
+                        // Reset form and close modal
+                        this.resetUserForm();
+                        this.showEditUserModal = false;
+                        this.selectedUser = null;
+                    }
+                },
+
+                async deleteUser(userId) {
+                    const result = await window.tenantAdminSave.deleteData('/users', userId, {
+                        confirmMessage: 'Are you sure you want to delete this user? This action cannot be undone.'
+                    });
+                    
+                    if (result.success) {
+                        this.users = this.users.filter(user => user.id !== userId);
+                    }
+                },
+
+                async toggleUserStatus(userId) {
+                    const user = this.users.find(u => u.id === userId);
+                    if (user) {
+                        const newStatus = !user.status;
+                        
+                        const result = await window.tenantAdminSave.saveData(`/users/${userId}/status`, {
+                            status: newStatus
+                        }, {
+                            successMessage: '',
+                            errorMessage: 'Failed to update user status',
+                            showLoading: false
+                        });
+                        
+                        if (result.success) {
+                            user.status = newStatus;
+                        } else {
+                            // Revert on failure
+                            user.status = !newStatus;
+                        }
+                    }
+                },
+
+                async resetPassword(userId) {
+                    const result = await window.tenantAdminSave.saveData(`/users/${userId}/reset-password`, {}, {
+                        successMessage: 'Password reset email sent successfully!',
+                        errorMessage: 'Failed to send password reset email'
+                    });
+
+                    if (result.success) {
+                        window.tenantAdminSave.showSuccess('Password reset instructions have been sent to the user\'s email.');
+                    }
+                },
+
+                async exportUsers() {
+                    try {
+                        const exportData = {
+                            format: 'excel',
+                            filters: {
+                                role: this.roleFilter,
+                                status: this.statusFilter,
+                                search: this.searchQuery
+                            }
+                        };
+
+                        const result = await window.tenantAdminSave.saveData('/users/export', exportData, {
+                            successMessage: 'Users exported successfully!',
+                            errorMessage: 'Failed to export users'
+                        });
+
+                        if (result.success && result.data.downloadUrl) {
+                            // Trigger download
+                            const link = document.createElement('a');
+                            link.href = result.data.downloadUrl;
+                            link.download = `users-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
+                    } catch (error) {
+                        console.error('Error exporting users:', error);
+                    }
+                },
+
+                async importUsers(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        if (!file.name.endsWith('.csv') && !file.name.endsWith('.xlsx')) {
+                            window.tenantAdminSave.showError('Please select a valid CSV or Excel file');
+                            return;
+                        }
+
+                        const formData = new FormData();
+                        formData.append('users', file);
+
+                        try {
+                            const response = await window.sharedApiClient.request('/users/import', {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            if (response.ok) {
+                                const result = await response.json();
+                                window.tenantAdminSave.showSuccess(`Successfully imported ${result.data.count} users.`);
+                                await this.loadUsers();
+                            }
+                        } catch (error) {
+                            console.error('Error importing users:', error);
+                            window.tenantAdminSave.showError('Failed to import users');
+                        }
+                    }
+                },
+
+                // Form validation
+                validateUserForm() {
+                    if (!this.newUser.name.trim()) {
+                        window.tenantAdminSave.showError('Please enter user name');
+                        return false;
+                    }
+
+                    if (!this.newUser.email.trim()) {
+                        window.tenantAdminSave.showError('Please enter email address');
+                        return false;
+                    }
+
+                    if (!this.validateEmail(this.newUser.email)) {
+                        window.tenantAdminSave.showError('Please enter a valid email address');
+                        return false;
+                    }
+
+                    // Password validation for new users
+                    if (!this.selectedUser && !this.newUser.password) {
+                        window.tenantAdminSave.showError('Please enter password');
+                        return false;
+                    }
+
+                    if (!this.selectedUser && this.newUser.password.length < 6) {
+                        window.tenantAdminSave.showError('Password must be at least 6 characters long');
+                        return false;
+                    }
+
+                    if (!this.selectedUser && this.newUser.password !== this.newUser.confirmPassword) {
+                        window.tenantAdminSave.showError('Passwords do not match');
+                        return false;
+                    }
+
+                    // Role-specific validation
+                    if (this.newUser.role === 'student' && !this.newUser.grade) {
+                        window.tenantAdminSave.showError('Please select grade for student');
+                        return false;
+                    }
+
+                    if ((this.newUser.role === 'student' || this.newUser.role === 'parent') && !this.newUser.parentEmail) {
+                        window.tenantAdminSave.showError('Please enter parent email');
+                        return false;
+                    }
+
+                    return true;
+                },
+
+                validateEmail(email) {
+                    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    return re.test(email);
+                },
+
+                resetUserForm() {
+                    this.newUser = {
+                        name: '',
+                        email: '',
+                        role: 'student',
+                        status: true,
+                        phone: '',
+                        address: '',
+                        dateOfBirth: '',
+                        grade: '',
+                        section: '',
+                        parentEmail: '',
+                        emergencyContact: '',
+                        password: '',
+                        confirmPassword: ''
+                    };
+                },
+
+                editUser(user) {
+                    this.selectedUser = user;
+                    this.newUser = {
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                        status: user.status,
+                        phone: user.phone || '',
+                        address: user.address || '',
+                        dateOfBirth: user.dateOfBirth || '',
+                        grade: user.grade || '',
+                        section: user.section || '',
+                        parentEmail: user.parentEmail || '',
+                        emergencyContact: user.emergencyContact || '',
+                        password: '',
+                        confirmPassword: ''
+                    };
+                    this.showEditUserModal = true;
+                },
+
+                // Search functionality
+                debounceSearch() {
+                    clearTimeout(this.searchTimeout);
+                    this.searchTimeout = setTimeout(() => {
+                        this.loadUsers();
+                    }, 500);
+                },
+
+                // Utility functions
+                formatDate(dateString) {
+                    if (!dateString) return '-';
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString();
+                },
+
+                getRoleBadgeClass(role) {
+                    const classes = {
+                        'admin': 'bg-purple-100 text-purple-800',
+                        'staff': 'bg-blue-100 text-blue-800',
+                        'teacher': 'bg-green-100 text-green-800',
+                        'student': 'bg-yellow-100 text-yellow-800',
+                        'parent': 'bg-gray-100 text-gray-800'
+                    };
+                    return classes[role] || 'bg-gray-100 text-gray-800';
+                },
+
+                getStatusBadgeClass(status) {
+                    return status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                },
+
+                async logout() {
+                    try {
+                        await window.sharedAuth.logout();
+                        window.location.href = '/frontend/index.html';
+                    } catch (error) {
+                        console.error('Error during logout:', error);
+                    }
+                }
+            }));
+        });
+    </script>
+</body>
+</html>

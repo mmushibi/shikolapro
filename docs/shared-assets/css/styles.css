@@ -1,0 +1,13 @@
+/* Shared Styles */
+/* Placeholder file to resolve 404 errors */
+console.log('Shared styles loaded');
+
+/* Basic styles that might be needed */
+.shared-styles {
+    /* Placeholder styles */
+}
+
+.dark-mode {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}

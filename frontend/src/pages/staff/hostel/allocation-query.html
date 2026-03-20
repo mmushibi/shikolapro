@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Room Allocation Query</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/shared-realtime.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        searchQuery: '',
+        selectedStatus: 'all',
+        allocations: [],
+        
+        // Form data objects
+        allocationData: {
+            studentId: '',
+            studentName: '',
+            requestedRoom: '',
+            allocatedRoom: '',
+            allocationDate: '',
+            status: 'pending'
+        },
+        init() {
+            this.init();
+            this.loadAllocations();
+        },
+        
+        // Handle real-time allocations updates
+        handleAllocationsUpdated(event) {
+            console.log('Allocations updated event received:', event.detail.allocations);
+            this.allocations = event.detail.allocations;
+        },
+        loadAllocations() {
+            // Load room allocations from API
+            console.log('Loading room allocations...');
+            // This will be replaced with actual API call
+            setTimeout(() => {
+                this.allocations = [];
+                this.loading = false;
+            }, 1000);
+        },
+        viewAllocation(allocation) {
+            this.selectedAllocation = allocation;
+            this.showAllocationModal = true;
+        },
+        allocateRoom(allocation) {
+            console.log('Allocate room for:', allocation.studentName);
+            // Pre-fill allocation data
+            this.allocationData.studentId = allocation.studentId;
+            this.allocationData.studentName = allocation.studentName;
+            this.allocationData.requestedRoom = allocation.requestedRoom;
+            this.allocationData.status = 'allocated';
+            // Open allocation modal
+            this.showAllocationModal = true;
+        },
+        
+        async saveAllocation() {
+            try {
+                console.log('Saving allocation:', this.allocationData);
+                
+                // Validate required fields
+                if (!this.allocationData.studentId || !this.allocationData.allocatedRoom || !this.allocationData.allocationDate) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showError('Please fill in all required fields');
+                    } else {
+                        alert('Please fill in all required fields');
+                    }
+                    return;
+                }
+                
+                // Call API to save allocation
+                const response = await window.sharedApiClient.post('/hostel/allocations', this.allocationData);
+                
+                if (response.success) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showSuccess('Room allocated successfully');
+                    } else {
+                        alert('Room allocated successfully');
+                    }
+                    
+                    // Reset form and close modal
+                    this.resetAllocationForm();
+                    this.showAllocationModal = false;
+                    
+                    // Reload allocations
+                    this.loadAllocations();
+                } else {
+                    throw new Error(response.message || 'Failed to allocate room');
+                }
+            } catch (error) {
+                console.error('Error saving allocation:', error);
+                if (window.sharedMessages) {
+                    window.sharedMessages.showError('Failed to allocate room: ' + error.message);
+                } else {
+                    alert('Failed to allocate room: ' + error.message);
+                }
+            }
+        },
+        
+        // Form reset function
+        resetAllocationForm() {
+            this.allocationData = {
+                studentId: '',
+                studentName: '',
+                requestedRoom: '',
+                allocatedRoom: '',
+                allocationDate: '',
+                status: 'pending'
+            };
+        },
+        filteredAllocations() {
+            return this.allocations.filter(allocation => {
+                const matchesSearch = allocation.studentName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                                 allocation.studentId.toLowerCase().includes(this.searchQuery.toLowerCase());
+                const matchesStatus = this.selectedStatus === 'all' || allocation.status === this.selectedStatus;
+                return matchesSearch && matchesStatus;
+            });
+        }
+    }" class="min-h-screen flex" @allocations-updated.window="handleAllocationsUpdated($event)">
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="rooms.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-bed"></i>
+                            </span>
+                            <span class="flex-1">Rooms</span>
+                        </a>
+                        <a href="residents.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-friends"></i>
+                            </span>
+                            <span class="flex-1">Residents</span>
+                        </a>
+                        <a href="visitors.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-check"></i>
+                            </span>
+                            <span class="flex-1">Visitors</span>
+                        </a>
+                        <a href="inventory.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-boxes"></i>
+                            </span>
+                            <span class="flex-1">Inventory</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="account.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-cog"></i>
+                            </span>
+                            <span class="flex-1">Account</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Quick Actions Card -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Quick Actions</h4>
+                        <p class="text-xs opacity-90 mb-3">Manage daily hostel operations</p>
+                        <div class="flex gap-2">
+                            <button class="flex-1 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check In
+                            </button>
+                            <button class="flex-1 bg-white text-blue-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                   <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="rooms.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-bed"></i>
+                            </span>
+                            <span class="flex-1">Rooms</span>
+                        </a>
+                        <a href="residents.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-friends"></i>
+                            </span>
+                            <span class="flex-1">Residents</span>
+                        </a>
+                        <a href="visitors.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-check"></i>
+                            </span>
+                            <span class="flex-1">Visitors</span>
+                        </a>
+                        <a href="inventory.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-boxes"></i>
+                            </span>
+                            <span class="flex-1">Inventory</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="account.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-cog"></i>
+                            </span>
+                            <span class="flex-1">Account</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Quick Actions Card -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Quick Actions</h4>
+                        <p class="text-xs opacity-90 mb-3">Manage daily hostel operations</p>
+                        <div class="flex gap-2">
+                            <button class="flex-1 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check In
+                            </button>
+                            <button class="flex-1 bg-white text-blue-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h1 class="text-2xl font-semibold text-slate-800">Room Allocation Query</h1>
+                            <p class="text-sm text-slate-400 mt-1">Manage student room allocations</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded-xl text-sm font-medium hover:shadow-lg transition">
+                                <i class="fas fa-download mr-2"></i>Export List
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="flex flex-col lg:flex-row gap-4 mt-6">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" x-model="searchQuery" placeholder="Search students by name or ID..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            </div>
+                        </div>
+                        <select x-model="selectedStatus" class="px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="allocated">Allocated</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+
+                    <!-- Allocations Table -->
+                    <div class="mt-6">
+                        <template x-if="loading">
+                            <div class="px-4 py-12 text-center">
+                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-spinner fa-spin text-slate-400"></i>
+                                </div>
+                                <div class="text-sm text-slate-500">Loading allocations...</div>
+                            </div>
+                        </template>
+
+                        <template x-if="!loading && filteredAllocations().length === 0">
+                            <div class="px-4 py-12 text-center">
+                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-bed text-slate-400"></i>
+                                </div>
+                                <div class="text-sm text-slate-500">No room allocations found</div>
+                                <div class="text-xs text-slate-400 mt-1">Try adjusting your search or filters</div>
+                            </div>
+                        </template>
+
+                        <template x-if="!loading && filteredAllocations().length > 0">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="border-b border-slate-200">
+                                            <th class="text-left py-3 px-4 text-xs font-medium text-slate-600 uppercase tracking-wide">Student</th>
+                                            <th class="text-left py-3 px-4 text-xs font-medium text-slate-600 uppercase tracking-wide">Student ID</th>
+                                            <th class="text-left py-3 px-4 text-xs font-medium text-slate-600 uppercase tracking-wide">Requested Room</th>
+                                            <th class="text-left py-3 px-4 text-xs font-medium text-slate-600 uppercase tracking-wide">Allocated Room</th>
+                                            <th class="text-left py-3 px-4 text-xs font-medium text-slate-600 uppercase tracking-wide">Date</th>
+                                            <th class="text-left py-3 px-4 text-xs font-medium text-slate-600 uppercase tracking-wide">Status</th>
+                                            <th class="text-left py-3 px-4 text-xs font-medium text-slate-600 uppercase tracking-wide">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="allocation in filteredAllocations()" :key="allocation.id">
+                                            <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                                <td class="py-3 px-4">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="h-8 w-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white">
+                                                            <i class="fas fa-user text-xs"></i>
+                                                        </div>
+                                                        <div>
+                                                            <div class="font-medium text-slate-800 text-sm" x-text="allocation.studentName"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                    <div class="text-sm text-slate-600" x-text="allocation.studentId"></div>
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                    <div class="text-sm text-slate-600" x-text="allocation.requestedRoom"></div>
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                    <div class="text-sm text-slate-600" x-text="allocation.allocatedRoom || '-'"></div>
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                    <div class="text-sm text-slate-600" x-text="allocation.requestedDate"></div>
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                    <span class="px-2 py-1 rounded-full text-xs font-medium"
+                                                          :class="{
+                                                              'bg-yellow-100 text-yellow-700': allocation.status === 'pending',
+                                                              'bg-green-100 text-green-700': allocation.status === 'approved',
+                                                              'bg-blue-100 text-blue-700': allocation.status === 'allocated',
+                                                              'bg-red-100 text-red-700': allocation.status === 'rejected'
+                                                          }"
+                                                          x-text="allocation.status.charAt(0).toUpperCase() + allocation.status.slice(1)">
+                                                    </span>
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                    <div class="flex gap-2">
+                                                        <button @click="viewAllocation(allocation)" class="p-1 text-blue-600 hover:bg-blue-50 rounded transition" title="View Details">
+                                                            <i class="fas fa-eye text-sm"></i>
+                                                        </button>
+                                                        <button x-show="allocation.status === 'approved'" @click="allocateRoom(allocation)" class="p-1 text-green-600 hover:bg-green-50 rounded transition" title="Allocate Room">
+                                                            <i class="fas fa-bed text-sm"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Allocation Modal -->
+    <template x-if="showAllocationModal">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800">Allocate Room</h3>
+                        <button @click="showAllocationModal = false" class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                    </div>
+                    <form class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Student ID</label>
+                            <input type="text" x-model="allocationData.studentId" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Student ID" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Student Name</label>
+                            <input type="text" x-model="allocationData.studentName" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Student name" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Requested Room</label>
+                            <input type="text" x-model="allocationData.requestedRoom" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Requested room" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Allocated Room</label>
+                            <input type="text" x-model="allocationData.allocatedRoom" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter room to allocate">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Allocation Date</label>
+                            <input type="date" x-model="allocationData.allocationDate" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div class="flex gap-3 pt-4">
+                            <button type="button" @click="showAllocationModal = false" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition">
+                                Cancel
+                            </button>
+                            <button type="button" @click="saveAllocation()" class="flex-1 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:shadow-lg transition">
+                                Allocate Room
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </template>
+</body>
+</html>

@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Hostel Rooms</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/shared-realtime.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="/shared-assets/js/unified-student-service.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        [x-cloak] { display: none !important; }
+        .modal-hidden { display: none !important; }
+        .modal-visible { display: flex !important; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        selectedBlock: 'all',
+        selectedFloor: 'all',
+        searchQuery: '',
+        showAddRoom: false,
+        showRoomDetails: false,
+        showAllocateRoom: false,
+        showQuickCheckIn: false,
+        showQuickCheckOut: false,
+        selectedRoomId: null,
+        editingRoom: null,
+        rooms: [],
+        students: [],
+        
+        // Form data objects
+        newRoom: {
+            roomNumber: '',
+            block: '',
+            floor: '',
+            type: '',
+            capacity: '',
+            status: 'available'
+        },
+        allocationData: {
+            studentId: '',
+            studentName: '',
+            bedNumber: '',
+            allocationDate: ''
+        },
+        checkInData: {
+            studentId: '',
+            roomNumber: '',
+            checkInDate: '',
+            notes: ''
+        },
+        checkOutData: {
+            studentId: '',
+            roomNumber: '',
+            checkOutDate: '',
+            reason: '',
+            notes: ''
+        },
+        
+        // Button functions
+        addRoom() {
+            console.log('Add room clicked - before state change:', this.showAddRoom);
+            this.showAddRoom = true;
+            console.log('Add room clicked - after state change:', this.showAddRoom);
+        },
+        
+        viewRoomDetails(roomId) {
+            console.log('View room details:', roomId);
+            this.selectedRoomId = roomId;
+            this.showRoomDetails = true;
+            console.log('Show room details state:', this.showRoomDetails);
+        },
+        
+        allocateRoom(roomId) {
+            console.log('Allocate room:', roomId);
+            this.selectedRoomId = roomId;
+            this.showAllocateRoom = true;
+            console.log('Show allocate room state:', this.showAllocateRoom);
+        },
+        
+        quickCheckIn() {
+            console.log('Quick check-in clicked');
+            this.showQuickCheckIn = true;
+            console.log('Show check-in state:', this.showQuickCheckIn);
+        },
+        
+        quickCheckOut() {
+            console.log('Quick check-out clicked');
+            this.showQuickCheckOut = true;
+            console.log('Show check-out state:', this.showQuickCheckOut);
+        },
+        
+        closeAllModals() {
+            console.log('Closing all modals');
+            this.showAddRoom = false;
+            this.showRoomDetails = false;
+            this.showAllocateRoom = false;
+            this.showQuickCheckIn = false;
+            this.showQuickCheckOut = false;
+            this.selectedRoomId = null;
+            console.log('All modals closed');
+        },
+        
+        // Save functions
+        async saveRoom() {
+            try {
+                console.log('Saving room:', this.newRoom);
+                
+                // Validate required fields
+                if (!this.newRoom.roomNumber || !this.newRoom.block || !this.newRoom.capacity) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showError('Please fill in all required fields');
+                    } else {
+                        alert('Please fill in all required fields');
+                    }
+                    return;
+                }
+                
+                // Call API to save room
+                const response = await window.sharedApiClient.post('/hostel/rooms', this.newRoom);
+                
+                if (response.success) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showSuccess('Room added successfully');
+                    } else {
+                        alert('Room added successfully');
+                    }
+                    
+                    // Reset form and close modal
+                    this.resetRoomForm();
+                    this.closeAllModals();
+                    
+                    // Reload rooms list
+                    this.loadRooms();
+                } else {
+                    throw new Error(response.message || 'Failed to add room');
+                }
+            } catch (error) {
+                console.error('Error saving room:', error);
+                if (window.sharedMessages) {
+                    window.sharedMessages.showError('Failed to add room: ' + error.message);
+                } else {
+                    alert('Failed to add room: ' + error.message);
+                }
+            }
+        },
+        
+        async saveAllocation() {
+            try {
+                console.log('Saving allocation:', this.allocationData);
+                
+                // Validate required fields
+                if (!this.allocationData.studentId || !this.allocationData.bedNumber || !this.allocationData.allocationDate) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showError('Please fill in all required fields');
+                    } else {
+                        alert('Please fill in all required fields');
+                    }
+                    return;
+                }
+                
+                // Call API to save allocation
+                const response = await window.sharedApiClient.post('/hostel/allocations', this.allocationData);
+                
+                if (response.success) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showSuccess('Room allocated successfully');
+                    } else {
+                        alert('Room allocated successfully');
+                    }
+                    
+                    // Reset form and close modal
+                    this.resetAllocationForm();
+                    this.closeAllModals();
+                    
+                    // Reload data
+                    this.loadAllocations();
+                } else {
+                    throw new Error(response.message || 'Failed to allocate room');
+                }
+            } catch (error) {
+                console.error('Error saving allocation:', error);
+                if (window.sharedMessages) {
+                    window.sharedMessages.showError('Failed to allocate room: ' + error.message);
+                } else {
+                    alert('Failed to allocate room: ' + error.message);
+                }
+            }
+        },
+        
+        async saveCheckIn() {
+            try {
+                console.log('Saving check-in:', this.checkInData);
+                
+                // Validate required fields
+                if (!this.checkInData.studentId || !this.checkInData.roomNumber || !this.checkInData.checkInDate) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showError('Please fill in all required fields');
+                    } else {
+                        alert('Please fill in all required fields');
+                    }
+                    return;
+                }
+                
+                // Call API to save check-in
+                const response = await window.sharedApiClient.post('/hostel/checkin', this.checkInData);
+                
+                if (response.success) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showSuccess('Check-in completed successfully');
+                    } else {
+                        alert('Check-in completed successfully');
+                    }
+                    
+                    // Reset form and close modal
+                    this.resetCheckInForm();
+                    this.closeAllModals();
+                    
+                    // Reload data
+                    this.loadResidents();
+                } else {
+                    throw new Error(response.message || 'Failed to complete check-in');
+                }
+            } catch (error) {
+                console.error('Error saving check-in:', error);
+                if (window.sharedMessages) {
+                    window.sharedMessages.showError('Failed to complete check-in: ' + error.message);
+                } else {
+                    alert('Failed to complete check-in: ' + error.message);
+                }
+            }
+        },
+        
+        async saveCheckOut() {
+            try {
+                console.log('Saving check-out:', this.checkOutData);
+                
+                // Validate required fields
+                if (!this.checkOutData.studentId || !this.checkOutData.roomNumber || !this.checkOutData.checkOutDate) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showError('Please fill in all required fields');
+                    } else {
+                        alert('Please fill in all required fields');
+                    }
+                    return;
+                }
+                
+                // Call API to save check-out
+                const response = await window.sharedApiClient.post('/hostel/checkout', this.checkOutData);
+                
+                if (response.success) {
+                    if (window.sharedMessages) {
+                        window.sharedMessages.showSuccess('Check-out completed successfully');
+                    } else {
+                        alert('Check-out completed successfully');
+                    }
+                    
+                    // Reset form and close modal
+                    this.resetCheckOutForm();
+                    this.closeAllModals();
+                    
+                    // Reload data
+                    this.loadResidents();
+                } else {
+                    throw new Error(response.message || 'Failed to complete check-out');
+                }
+            } catch (error) {
+                console.error('Error saving check-out:', error);
+                if (window.sharedMessages) {
+                    window.sharedMessages.showError('Failed to complete check-out: ' + error.message);
+                } else {
+                    alert('Failed to complete check-out: ' + error.message);
+                }
+            }
+        },
+        
+        // Form reset functions
+        resetRoomForm() {
+            this.newRoom = {
+                roomNumber: '',
+                block: '',
+                floor: '',
+                type: '',
+                capacity: '',
+                status: 'available'
+            };
+        },
+        
+        resetAllocationForm() {
+            this.allocationData = {
+                studentId: '',
+                studentName: '',
+                bedNumber: '',
+                allocationDate: ''
+            };
+        },
+        
+        resetCheckInForm() {
+            this.checkInData = {
+                studentId: '',
+                roomNumber: '',
+                checkInDate: '',
+                notes: ''
+            };
+        },
+        
+        resetCheckOutForm() {
+            this.checkOutData = {
+                studentId: '',
+                roomNumber: '',
+                checkOutDate: '',
+                reason: '',
+                notes: ''
+            };
+        },
+        
+        // Data loading functions
+        async loadRooms() {
+            try {
+                // Try to get real-time data first
+                const realtimeRooms = window.sharedRealtime.getRooms();
+                if (realtimeRooms.length > 0) {
+                    console.log('Using real-time rooms data:', realtimeRooms);
+                    return realtimeRooms;
+                }
+                
+                // Fallback to API call
+                const response = await window.sharedApiClient.get('/hostel/rooms');
+                if (response.success) {
+                    console.log('Rooms loaded from API:', response.data);
+                    return response.data;
+                }
+            } catch (error) {
+                console.error('Error loading rooms:', error);
+                return [];
+            }
+        },
+        
+        init() {
+            this.loadStudents();
+            this.setupStudentDataSync();
+            
+            // Initialize real-time subscriptions
+            window.sharedRealtime.subscribe('rooms', (rooms) => {
+                console.log('Real-time rooms update received:', rooms);
+                // Trigger Alpine.js reactivity
+                this.$dispatch('rooms-updated', { rooms });
+            });
+            
+            window.sharedRealtime.subscribe('notifications', (notification) => {
+                console.log('Real-time notification:', notification);
+                if (window.sharedMessages) {
+                    if (notification.type === 'success') {
+                        window.sharedMessages.showSuccess(notification.message);
+                    } else if (notification.type === 'error') {
+                        window.sharedMessages.showError(notification.message);
+                    } else {
+                        window.sharedMessages.showInfo(notification.message);
+                    }
+                }
+            });
+            
+            // Request notification permissions
+            window.sharedRealtime.requestNotificationPermission();
+        },
+        
+        async loadAllocations() {
+            try {
+                const response = await window.sharedApiClient.get('/hostel/allocations');
+                if (response.success) {
+                    // Update allocations data
+                    console.log('Allocations loaded:', response.data);
+                }
+            } catch (error) {
+                console.error('Error loading allocations:', error);
+            }
+        },
+        
+        async loadResidents() {
+            try {
+                const response = await window.sharedApiClient.get('/hostel/residents');
+                if (response.success) {
+                    // Update residents data
+                    console.log('Residents loaded:', response.data);
+                }
+            } catch (error) {
+                console.error('Error loading residents:', error);
+            }
+        },
+        
+        loadStudents() {
+            if (window.unifiedStudentService) {
+                this.students = unifiedStudentService.getStudents({ module: 'hostel' });
+                console.log('Loaded students for Hostel module:', this.students.length);
+            }
+        },
+        
+        setupStudentDataSync() {
+            if (window.unifiedStudentService) {
+                // Subscribe to student data updates
+                unifiedStudentService.subscribe('data_updated', (update) => {
+                    if (update.sourceModule !== 'hostel') {
+                        // Data was updated by another module, refresh our view
+                        this.loadStudents();
+                        console.log('Student data updated by', update.sourceModule);
+                    }
+                });
+            }
+        },
+        
+        // Test function
+        testClick() {
+            console.log('Test click works!');
+            alert('Test click works!');
+        },
+        
+        init() {
+            this.init();
+            this.loadRooms();
+        },
+        
+        // Handle real-time rooms updates
+        handleRoomsUpdated(event) {
+            console.log('Rooms updated event received:', event.detail.rooms);
+            this.rooms = event.detail.rooms;
+        }
+    } }" class="min-h-screen flex" @rooms-updated.window="handleRoomsUpdated($event)">
+        <!-- Include same sidebar and header structure as home.html -->
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar (same as home) -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-bed"></i>
+                            </span>
+                            <span class="font-medium flex-1">Rooms</span>
+                        </a>
+                        <a href="residents.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-friends"></i>
+                            </span>
+                            <span class="flex-1">Residents</span>
+                        </a>
+                        <a href="visitors.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-check"></i>
+                            </span>
+                            <span class="flex-1">Visitors</span>
+                        </a>
+                        <a href="inventory.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-boxes"></i>
+                            </span>
+                            <span class="flex-1">Inventory</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="account.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-cog"></i>
+                            </span>
+                            <span class="flex-1">Account</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Quick Actions Card -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Quick Actions</h4>
+                        <p class="text-xs opacity-90 mb-3">Manage daily hostel operations</p>
+                        <div class="flex gap-2">
+                            <button @click="quickCheckIn()" class="flex-1 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check In
+                            </button>
+                            <button @click="quickCheckOut()" class="flex-1 bg-white text-blue-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                   <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="rooms.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-bed"></i>
+                            </span>
+                            <span class="font-medium flex-1">Rooms</span>
+                        </a>
+                        <a href="residents.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-friends"></i>
+                            </span>
+                            <span class="flex-1">Residents</span>
+                        </a>
+                        <a href="visitors.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-check"></i>
+                            </span>
+                            <span class="flex-1">Visitors</span>
+                        </a>
+                        <a href="inventory.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-boxes"></i>
+                            </span>
+                            <span class="flex-1">Inventory</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="account.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-cog"></i>
+                            </span>
+                            <span class="flex-1">Account</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Quick Actions Card -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Quick Actions</h4>
+                        <p class="text-xs opacity-90 mb-3">Manage daily hostel operations</p>
+                        <div class="flex gap-2">
+                            <button @click="quickCheckIn()" class="flex-1 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check In
+                            </button>
+                            <button @click="quickCheckOut()" class="flex-1 bg-white text-blue-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h1 class="text-2xl font-semibold text-slate-800">Room Management</h1>
+                            <p class="text-sm text-slate-400 mt-1">Manage hostel rooms and allocations</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button @click="testClick()" class="px-4 py-2 bg-red-500 text-white rounded-xl text-sm font-medium hover:shadow-lg transition">
+                                Test Button
+                            </button>
+                            <button @click="addRoom()" class="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-sm font-medium hover:shadow-lg transition">
+                                <i class="fas fa-plus mr-2"></i>Add Room
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Debug Panel -->
+                    <div class="bg-slate-100 rounded-lg p-4 mt-4">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-2">Debug State:</h4>
+                        <div class="text-xs space-y-1">
+                            <div>Add Room: <span x-text="showAddRoom"></span></div>
+                            <div>Room Details: <span x-text="showRoomDetails"></span></div>
+                            <div>Allocate Room: <span x-text="showAllocateRoom"></span></div>
+                            <div>Check In: <span x-text="showQuickCheckIn"></span></div>
+                            <div>Check Out: <span x-text="showQuickCheckOut"></span></div>
+                            <div>Selected Room: <span x-text="selectedRoomId"></span></div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="flex flex-col lg:flex-row gap-4 mt-6">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" x-model="searchQuery" placeholder="Search rooms..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            </div>
+                        </div>
+                        <select x-model="selectedBlock" class="px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="all">All Blocks</option>
+                            <option value="A">Block A</option>
+                            <option value="B">Block B</option>
+                            <option value="C">Block C</option>
+                            <option value="D">Block D</option>
+                        </select>
+                        <select x-model="selectedFloor" class="px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="all">All Floors</option>
+                            <option value="1">Floor 1</option>
+                            <option value="2">Floor 2</option>
+                            <option value="3">Floor 3</option>
+                        </select>
+                    </div>
+
+                    <!-- Room Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-6">
+                        <!-- Room Card Template -->
+                        <template x-for="room in rooms" :key="room.id">
+                            <div class="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-lg transition cursor-pointer"
+                                 :class="{
+                                     'border-green-200 bg-green-50': room.status === 'available',
+                                     'border-red-200 bg-red-50': room.status === 'occupied',
+                                     'border-yellow-200 bg-yellow-50': room.status === 'partially',
+                                     'border-gray-200 bg-gray-50': room.status === 'maintenance'
+                                 }">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <div class="font-semibold text-slate-800" x-text="room.id"></div>
+                                        <div class="text-xs text-slate-500">Block <span x-text="room.block"></span>, Floor <span x-text="room.floor"></span></div>
+                                    </div>
+                                    <div class="px-2 py-1 rounded-full text-xs font-medium"
+                                         :class="{
+                                             'bg-green-100 text-green-700': room.status === 'available',
+                                             'bg-red-100 text-red-700': room.status === 'occupied',
+                                             'bg-yellow-100 text-yellow-700': room.status === 'partially',
+                                             'bg-gray-100 text-gray-700': room.status === 'maintenance'
+                                         }"
+                                         x-text="room.status.charAt(0).toUpperCase() + room.status.slice(1)">
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500">Capacity:</span>
+                                        <span class="font-medium" x-text="room.capacity + ' beds'"></span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500">Occupied:</span>
+                                        <span class="font-medium" x-text="room.occupied + ' beds'"></span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500">Type:</span>
+                                        <span class="font-medium capitalize" x-text="room.type"></span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 mt-3">
+                                    <button @click="viewRoomDetails(room.id)" class="flex-1 px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs font-medium hover:bg-blue-200 transition">
+                                        View Details
+                                    </button>
+                                    <button @click="allocateRoom(room.id)" class="flex-1 px-2 py-1 bg-orange-100 text-orange-600 rounded text-xs font-medium hover:bg-orange-200 transition">
+                                        Allocate
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Room Modal -->
+    <template x-if="showAddRoom">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-slate-800">Add New Room</h3>
+                    <button @click="closeAllModals()" class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+                <form class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Room Number</label>
+                        <input type="text" x-model="newRoom.roomNumber" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g., A-101">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Block</label>
+                        <select x-model="newRoom.block" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="">Select Block</option>
+                            <option value="A">Block A</option>
+                            <option value="B">Block B</option>
+                            <option value="C">Block C</option>
+                            <option value="D">Block D</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Floor</label>
+                        <select x-model="newRoom.floor" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="">Select Floor</option>
+                            <option value="1">1st Floor</option>
+                            <option value="2">2nd Floor</option>
+                            <option value="3">3rd Floor</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Room Type</label>
+                        <select x-model="newRoom.type" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="">Select Type</option>
+                            <option value="single">Single</option>
+                            <option value="double">Double</option>
+                            <option value="triple">Triple</option>
+                            <option value="quad">Quad</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Capacity</label>
+                        <input type="number" x-model="newRoom.capacity" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Number of beds">
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" @click="closeAllModals()" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition">
+                            Cancel
+                        </button>
+                        <button type="button" @click="saveRoom()" class="flex-1 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:shadow-lg transition">
+                            Add Room
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </div>
+    </template>
+
+    <!-- Room Details Modal -->
+    <template x-if="showRoomDetails">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-slate-800">Room Details</h3>
+                    <button @click="closeAllModals()" class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-slate-50 rounded-lg p-4">
+                        <div class="text-sm text-slate-600">Room Number</div>
+                        <div class="font-medium text-slate-800" x-text="selectedRoomId ? 'Room ' + selectedRoomId : 'Loading...'"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-50 rounded-lg p-4">
+                            <div class="text-sm text-slate-600">Block</div>
+                            <div class="font-medium text-slate-800">-</div>
+                        </div>
+                        <div class="bg-slate-50 rounded-lg p-4">
+                            <div class="text-sm text-slate-600">Floor</div>
+                            <div class="font-medium text-slate-800">-</div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 rounded-lg p-4">
+                        <div class="text-sm text-slate-600">Current Occupants</div>
+                        <div class="font-medium text-slate-800">0 / 4 beds occupied</div>
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button @click="closeAllModals()" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition">
+                            Close
+                        </button>
+                        <button @click="showRoomDetails = false; showAllocateRoom = true" class="flex-1 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:shadow-lg transition">
+                            Allocate Room
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </template>
+
+    <!-- Allocate Room Modal -->
+    <template x-if="showAllocateRoom">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-slate-800">Allocate Room</h3>
+                    <button @click="closeAllModals()" class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+                <form class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Room</label>
+                        <div class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg" x-text="selectedRoomId ? 'Room ' + selectedRoomId : 'Loading...'"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Student ID</label>
+                        <input type="text" x-model="allocationData.studentId" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter student ID">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Student Name</label>
+                        <input type="text" x-model="allocationData.studentName" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Auto-filled from student ID" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Bed Number</label>
+                        <select x-model="allocationData.bedNumber" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="">Select Bed</option>
+                            <option value="1">Bed 1</option>
+                            <option value="2">Bed 2</option>
+                            <option value="3">Bed 3</option>
+                            <option value="4">Bed 4</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Allocation Date</label>
+                        <input type="date" x-model="allocationData.allocationDate" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" @click="closeAllModals()" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition">
+                            Cancel
+                        </button>
+                        <button type="button" @click="saveAllocation()" class="flex-1 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:shadow-lg transition">
+                            Allocate
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </div>
+    </template>
+
+    <!-- Quick Check In Modal -->
+    <template x-if="showQuickCheckIn">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-slate-800">Quick Check In</h3>
+                    <button @click="closeAllModals()" class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+                <form class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Student ID</label>
+                        <input type="text" x-model="checkInData.studentId" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter student ID">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Room Number</label>
+                        <input type="text" x-model="checkInData.roomNumber" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter room number">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Check In Date</label>
+                        <input type="date" x-model="checkInData.checkInDate" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+                        <textarea x-model="checkInData.notes" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" rows="3" placeholder="Additional notes (optional)"></textarea>
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" @click="closeAllModals()" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition">
+                            Cancel
+                        </button>
+                        <button type="button" @click="saveCheckIn()" class="flex-1 px-4 py-2 bg-gradient-to-r from-green-400 to-green-500 text-white rounded-lg font-medium hover:shadow-lg transition">
+                            Check In
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </div>
+    </template>
+
+    <!-- Quick Check Out Modal -->
+    <template x-if="showQuickCheckOut">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-slate-800">Quick Check Out</h3>
+                    <button @click="closeAllModals()" class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+                <form class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Student ID</label>
+                        <input type="text" x-model="checkOutData.studentId" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter student ID">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Room Number</label>
+                        <input type="text" x-model="checkOutData.roomNumber" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Auto-filled from student ID" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Check Out Date</label>
+                        <input type="date" x-model="checkOutData.checkOutDate" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Reason</label>
+                        <select x-model="checkOutData.reason" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="">Select Reason</option>
+                            <option value="end_of_semester">End of Semester</option>
+                            <option value="withdrawal">Withdrawal</option>
+                            <option value="transfer">Transfer</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+                        <textarea x-model="checkOutData.notes" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" rows="3" placeholder="Additional notes (optional)"></textarea>
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" @click="closeAllModals()" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition">
+                            Cancel
+                        </button>
+                        <button type="button" @click="saveCheckOut()" class="flex-1 px-4 py-2 bg-gradient-to-r from-red-400 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transition">
+                            Check Out
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </div>
+    </template>
+</body>
+</html>

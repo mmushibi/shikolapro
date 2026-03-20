@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Accountant Settings</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+    <style>
+        body {
+            font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-sm { font-size: 0.825rem !important; line-height: 1.125rem !important; }
+        .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .text-lg { font-size: 0.925rem !important; line-height: 1.375rem !important; }
+        .text-xl { font-size: 0.975rem !important; line-height: 1.5rem !important; }
+        .text-2xl { font-size: 1.025rem !important; line-height: 1.625rem !important; }
+        .text-3xl { font-size: 1.075rem !important; line-height: 1.75rem !important; }
+        .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+        body, body * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+        body::-webkit-scrollbar,
+        body *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        body::-webkit-scrollbar-track,
+        body *::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+        body::-webkit-scrollbar-thumb,
+        body *::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div x-data="settingsPage()" x-init="init()" class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <button @click="toggleSidebar" class="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 lg:hidden" title="Toggle Sidebar">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <h1 class="ml-4 text-2xl font-semibold text-gray-900">Accountant Settings</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="showNotifications = !showNotifications" class="relative p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" title="Notifications">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400"></span>
+                        </button>
+                        <div class="relative">
+                            <button @click="showUserMenu = !showUserMenu" class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" title="User Menu">
+                                <img class="h-8 w-8 rounded-full" src="/frontend/public/images/default-avatar.png" alt="Profile">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex h-screen pt-16">
+            <!-- Sidebar -->
+            <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed lg:static lg:translate-x-0 z-30 w-64 bg-white shadow-lg h-full transition-transform duration-300 ease-in-out">
+                <nav class="mt-5 px-2">
+                    <div class="space-y-1">
+                        <a href="/frontend/src/pages/staff/home.html" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                            <i class="fas fa-home mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Dashboard
+                        </a>
+                        <a href="/frontend/src/pages/staff/accountant/fees.html" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                            <i class="fas fa-dollar-sign mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Fees
+                        </a>
+                        <a href="/frontend/src/pages/staff/accountant/expenses.html" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                            <i class="fas fa-receipt mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Expenses
+                        </a>
+                        <a href="/frontend/src/pages/staff/accountant/budget.html" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                            <i class="fas fa-calculator mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Budget
+                        </a>
+                        <a href="/frontend/src/pages/staff/accountant/invoices.html" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                            <i class="fas fa-file-invoice mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Invoices
+                        </a>
+                        <a href="/frontend/src/pages/staff/accountant/payroll.html" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                            <i class="fas fa-users mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Payroll
+                        </a>
+                        <a href="/frontend/src/pages/staff/accountant/reports.html" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                            <i class="fas fa-chart-bar mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Reports
+                        </a>
+                        <a href="/frontend/src/pages/staff/accountant/audit.html" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                            <i class="fas fa-search mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            Audit
+                        </a>
+                        <a href="/frontend/src/pages/staff/accountant/settings.html" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md bg-blue-50 text-blue-700">
+                            <i class="fas fa-cog mr-3 text-blue-500"></i>
+                            Settings
+                        </a>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 overflow-y-auto">
+                <div class="py-6">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <!-- Settings Tabs -->
+                        <div class="bg-white shadow rounded-lg">
+                            <div class="border-b border-gray-200">
+                                <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                                    <button @click="activeTab = 'general'" :class="activeTab === 'general' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                        General Settings
+                                    </button>
+                                    <button @click="activeTab = 'financial'" :class="activeTab === 'financial' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                        Financial Settings
+                                    </button>
+                                    <button @click="activeTab = 'notifications'" :class="activeTab === 'notifications' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                        Notifications
+                                    </button>
+                                    <button @click="activeTab = 'security'" :class="activeTab === 'security' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                        Security
+                                    </button>
+                                </nav>
+                            </div>
+
+                            <div class="p-6">
+                                <!-- General Settings Tab -->
+                                <div x-show="activeTab === 'general'" class="space-y-6">
+                                    <div>
+                                        <h3 class="text-lg font-medium text-gray-900 mb-4">General Configuration</h3>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700">Default Currency</label>
+                                                <select x-model="settings.general.defaultCurrency" title="Default currency" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                                    <option value="USD">USD - US Dollar</option>
+                                                    <option value="EUR">EUR - Euro</option>
+                                                    <option value="GBP">GBP - British Pound</option>
+                                                    <option value="JPY">JPY - Japanese Yen</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700">Tax Rate (%)</label>
+                                                <input type="number" x-model="settings.general.taxRate" min="0" max="100" step="0.1" title="Tax rate" placeholder="Enter tax rate" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700">Fiscal Year Start</label>
+                                                <select x-model="settings.general.fiscalYearStart" title="Fiscal year start month" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                                    <option value="January">January</option>
+                                                    <option value="February">February</option>
+                                                    <option value="March">March</option>
+                                                    <option value="April">April</option>
+                                                    <option value="May">May</option>
+                                                    <option value="June">June</option>
+                                                    <option value="July">July</option>
+                                                    <option value="August">August</option>
+                                                    <option value="September">September</option>
+                                                    <option value="October">October</option>
+                                                    <option value="November">November</option>
+                                                    <option value="December">December</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700">Default Payment Terms (days)</label>
+                                                <input type="number" x-model="settings.general.paymentTerms" min="0" title="Default payment terms in days" placeholder="Enter payment terms" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Financial Settings Tab -->
+                                <div x-show="activeTab === 'financial'" class="space-y-6">
+                                    <div>
+                                        <h3 class="text-lg font-medium text-gray-900 mb-4">Financial Configuration</h3>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700">Bank Name</label>
+                                                <input type="text" x-model="settings.financial.bankName" title="Bank name" placeholder="Enter bank name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700">Bank Account Number</label>
+                                                <input type="text" x-model="settings.financial.bankAccount" title="Bank account number" placeholder="Enter bank account number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700">Bank Routing Number</label>
+                                                <input type="text" x-model="settings.financial.routingNumber" title="Bank routing number" placeholder="Enter routing number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700">Invoice Prefix</label>
+                                                <input type="text" x-model="settings.financial.invoicePrefix" title="Invoice prefix" placeholder="Enter invoice prefix" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700">Late Fee (%)</label>
+                                                <input type="number" x-model="settings.financial.lateFee" min="0" max="100" step="0.1" title="Late fee percentage" placeholder="Enter late fee" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Methods</label>
+                                                <div class="space-y-2">
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.financial.acceptCash" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Accept Cash</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.financial.acceptCheck" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Accept Checks</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.financial.acceptCard" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Accept Credit Cards</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.financial.acceptBank" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Accept Bank Transfers</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Notifications Tab -->
+                                <div x-show="activeTab === 'notifications'" class="space-y-6">
+                                    <div>
+                                        <h3 class="text-lg font-medium text-gray-900 mb-4">Notification Settings</h3>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Email Notifications</label>
+                                                <div class="space-y-2">
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.notifications.paymentReceived" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Payment received</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.notifications.invoiceOverdue" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Invoice overdue</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.notifications.budgetAlert" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Budget exceeded</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.notifications.expenseAlert" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">High expense alert</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700">Notification Frequency</label>
+                                                <select x-model="settings.notifications.frequency" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                                    <option value="immediate">Immediate</option>
+                                                    <option value="daily">Daily Digest</option>
+                                                    <option value="weekly">Weekly Digest</option>
+                                                    <option value="monthly">Monthly Digest</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Security Tab -->
+                                <div x-show="activeTab === 'security'" class="space-y-6">
+                                    <div>
+                                        <h3 class="text-lg font-medium text-gray-900 mb-4">Security Settings</h3>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Access Control</label>
+                                                <div class="space-y-2">
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.security.requireApproval" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Require approval for large transactions</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.security.twoFactorAuth" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Enable two-factor authentication</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.security.sessionTimeout" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Auto-logout after inactivity</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700">Session Timeout (minutes)</label>
+                                                    <input type="number" x-model="settings.security.sessionTimeoutMinutes" min="5" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700">Max Transaction Amount</label>
+                                                    <input type="number" x-model="settings.security.maxTransaction" min="0" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Audit Settings</label>
+                                                <div class="space-y-2">
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.security.auditAllTransactions" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Log all financial transactions</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.security.auditLogins" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Log all login attempts</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="checkbox" x-model="settings.security.auditExports" class="form-checkbox h-4 w-4 text-blue-600">
+                                                        <span class="ml-2 text-sm text-gray-700">Log data exports</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Save Button -->
+                                <div class="mt-8 flex justify-end">
+                                    <button @click="saveSettings" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        <i class="fas fa-save mr-2"></i>
+                                        Save Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function settingsPage() {
+            return {
+                sidebarOpen: false,
+                activeTab: 'general',
+                settings: {
+                    general: {
+                        defaultCurrency: 'USD',
+                        taxRate: '8.5',
+                        fiscalYearStart: 'January',
+                        paymentTerms: '30'
+                    },
+                    financial: {
+                        bankName: 'First National Bank',
+                        bankAccount: '1234567890',
+                        routingNumber: '987654321',
+                        invoicePrefix: 'INV',
+                        lateFee: '2.5',
+                        acceptCash: true,
+                        acceptCheck: true,
+                        acceptCard: true,
+                        acceptBank: true
+                    },
+                    notifications: {
+                        paymentReceived: true,
+                        invoiceOverdue: true,
+                        budgetAlert: true,
+                        expenseAlert: true,
+                        frequency: 'immediate'
+                    },
+                    security: {
+                        requireApproval: true,
+                        twoFactorAuth: false,
+                        sessionTimeout: true,
+                        sessionTimeoutMinutes: '30',
+                        maxTransaction: '10000',
+                        auditAllTransactions: true,
+                        auditLogins: true,
+                        auditExports: true
+                    }
+                },
+                
+                init() {
+                    this.loadSettings();
+                },
+                
+                toggleSidebar() {
+                    this.sidebarOpen = !this.sidebarOpen;
+                },
+                
+                loadSettings() {
+                    // Load settings from storage or API
+                    console.log('Loading accountant settings...');
+                },
+                
+                saveSettings() {
+                    // Save settings to storage or API
+                    console.log('Saving accountant settings:', this.settings);
+                    this.showSuccessMessage('Settings saved successfully!');
+                },
+                
+                showSuccessMessage(message) {
+                    console.log('Success:', message);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

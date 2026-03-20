@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Campus Resources</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="/shared-assets/js/tenant-admin-save-utility.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+    <style>
+        /* Font family setup */
+        body {
+            font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Consistent font sizes */
+        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-sm { font-size: 0.825rem !important; line-height: 1.125rem !important; }
+        .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .text-lg { font-size: 0.925rem !important; line-height: 1.375rem !important; }
+        .text-xl { font-size: 0.975rem !important; line-height: 1.5rem !important; }
+        .text-2xl { font-size: 1.025rem !important; line-height: 1.625rem !important; }
+        .text-3xl { font-size: 1.075rem !important; line-height: 1.75rem !important; }
+
+        /* Override any larger font sizes */
+        .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+
+        /* Custom scrollbar to match app theme */
+        body, body * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        body::-webkit-scrollbar,
+        body *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        body::-webkit-scrollbar-track,
+        body *::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        body::-webkit-scrollbar-thumb,
+        body *::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #f97316, #ea580c);
+            border-radius: 9999px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover,
+        body *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ea580c, #c2410c);
+        }
+
+        /* Custom animations */
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Ensure consistent small text throughout */
+        h1 { font-size: 1.25rem !important; }
+        h2 { font-size: 1.125rem !important; }
+        h3 { font-size: 1rem !important; }
+        h4 { font-size: 0.925rem !important; }
+        h5 { font-size: 0.875rem !important; }
+        h6 { font-size: 0.825rem !important; }
+        
+        /* Input and button text sizes */
+        input, button, select, textarea {
+            font-size: 0.825rem !important;
+        }
+
+        /* Badge and label text */
+        .badge, .label {
+            font-size: 0.7rem !important;
+        }
+
+        /* Tab styles */
+        .tab-button {
+            position: relative;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to right, #f97316, #ea580c);
+            border-radius: 2px 2px 0 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="campusResourcesApp()" x-init="init()" class="min-h-screen flex">
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="academics.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-graduation-cap"></i>
+                            </span>
+                            <span class="flex-1">Academics</span>
+                        </a>
+                        <a href="finance.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-line"></i>
+                            </span>
+                            <span class="flex-1">Finance</span>
+                        </a>
+                        <a href="users.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-users"></i>
+                            </span>
+                            <span class="flex-1">Users</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-building"></i>
+                            </span>
+                            <span class="font-medium flex-1">Campus Resources</span>
+                        </a>
+                        <a href="communications.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-comments"></i>
+                            </span>
+                            <span class="flex-1">Communications</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports & Analytics</span>
+                        </a>
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="flex-1">Settings</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Approval Request Card -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Lecturer Request</h4>
+                        <p class="text-xs opacity-90 mb-3">Request for join lecturer, need approval for access</p>
+                        <div class="flex gap-2">
+                            <button class="flex-1 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Decline
+                            </button>
+                            <button class="flex-1 bg-white text-purple-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Approve
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                   <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="academics.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-graduation-cap"></i>
+                            </span>
+                            <span class="flex-1">Academics</span>
+                        </a>
+                        <a href="finance.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-line"></i>
+                            </span>
+                            <span class="flex-1">Finance</span>
+                        </a>
+                        <a href="users.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-users"></i>
+                            </span>
+                            <span class="flex-1">Users</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-building"></i>
+                            </span>
+                            <span class="font-medium flex-1">Campus Resources</span>
+                        </a>
+                        <a href="communications.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-comments"></i>
+                            </span>
+                            <span class="flex-1">Communications</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="flex-1">Reports & Analytics</span>
+                        </a>
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="flex-1">Settings</span>
+                        </a>
+                    </div>
+                </nav>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7 h-full flex flex-col">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-100 pb-3">
+                        <div class="flex items-center justify-center w-full lg:w-auto lg:justify-start gap-3">
+                            <button type="button" @click="sidebarOpen = true" class="lg:hidden fixed top-4 left-4 z-50 h-9 w-9 rounded-xl bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="relative">
+                                <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-14 w-auto rounded-2xl lg:hidden">
+                                <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                            </div>
+                            <div class="hidden lg:block">
+                                <h1 class="text-2xl sm:text-3xl font-semibold text-slate-800">Campus Resources</h1>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1 hidden sm:block">Manage library, inventory, and allocations</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hidden sm:flex items-center gap-3">
+                            <!-- Search Bar -->
+                            <div class="relative hidden sm:flex items-center bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 w-64">
+                                <i class="fas fa-search text-slate-400 text-sm mr-2"></i>
+                                <input type="text" placeholder="Search resources..." class="bg-transparent text-sm text-slate-600 placeholder-slate-400 focus:outline-none flex-1">
+                            </div>
+
+                            <!-- Notifications -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="relative h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                                    <i class="fas fa-bell"></i>
+                                    <span x-show="unreadCount() > 0" x-text="unreadCount()" class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"></span>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                        <h3 class="font-semibold text-slate-800">Notifications</h3>
+                                        <div class="flex gap-2">
+                                            <button @click="notifications.forEach(n => n.read = true)" class="text-xs text-orange-500 hover:text-orange-600 font-medium">Read All</button>
+                                            <button @click="notifications = []" class="text-xs text-red-500 hover:text-red-600 font-medium">Clear</button>
+                                        </div>
+                                    </div>
+                                    <div class="max-h-96 overflow-y-auto">
+                                        <template x-if="notifications.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-bell text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No notifications yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">You're all caught up!</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="notification in notifications" :key="notification.id">
+                                            <div class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition cursor-pointer">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="h-2 w-2 rounded-full mt-2" :class="notification.read ? 'bg-slate-300' : 'bg-orange-500'"></div>
+                                                    <div class="flex-1">
+                                                        <div class="font-medium text-slate-800 text-sm" x-text="notification.title"></div>
+                                                        <div class="text-slate-500 text-xs mt-1" x-text="notification.message"></div>
+                                                        <div class="text-slate-400 text-xs mt-1" x-text="notification.time"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Profile -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition">
+                                    <div class="h-8 w-8 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white">
+                                        <i class="fas fa-user text-sm"></i>
+                                    </div>
+                                    <div class="hidden sm:block text-left">
+                                        <div class="font-medium text-slate-800 text-sm">Administrator</div>
+                                        <div class="text-slate-500 text-xs">Admin</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                                        <i class="fas fa-user text-slate-400"></i>
+                                        <span class="text-sm text-slate-700">Profile</span>
+                                    </a>
+                                    <button @click="window.logout()" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-500 transition">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span class="text-sm">Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs Navigation -->
+                    <div class="flex border-b border-slate-200 mt-6">
+                        <button @click="switchTab('library')" 
+                                :class="activeTab === 'library' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors tab-button">
+                            <i class="fas fa-book mr-2"></i>
+                            Library Management
+                        </button>
+                        <button @click="switchTab('inventory')" 
+                                :class="activeTab === 'inventory' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors tab-button">
+                            <i class="fas fa-boxes mr-2"></i>
+                            Inventory/Asset Management
+                        </button>
+                        <button @click="switchTab('allocations')" 
+                                :class="activeTab === 'allocations' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                class="px-4 py-3 text-sm font-medium transition-colors tab-button">
+                            <i class="fas fa-home mr-2"></i>
+                            Hostel/Transport Allocation
+                        </button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="flex-1 overflow-y-auto">
+                        <!-- Library Management Tab -->
+                        <div x-show="activeTab === 'library'" class="mt-6">
+                            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                                <!-- Books Section -->
+                                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-sm font-semibold text-slate-800">Library Books</h3>
+                                        <button @click="showAddBook = !showAddBook" class="px-3 py-1.5 bg-orange-100 text-orange-500 rounded-lg text-xs font-medium hover:bg-orange-200 transition">
+                                            <i class="fas fa-plus mr-1"></i>Add Book
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Add Book Form -->
+                                    <div x-show="showAddBook" x-transition class="mb-4 p-4 bg-slate-50 rounded-xl">
+                                        <input x-model="newBookTitle" type="text" placeholder="Book title" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                        <input x-model="newBookAuthor" type="text" placeholder="Author" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                        <input x-model="newBookISBN" type="text" placeholder="ISBN" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                        <select x-model="newBookCategory" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                            <option value="">Select Category</option>
+                                            <option value="Fiction">Fiction</option>
+                                            <option value="Non-Fiction">Non-Fiction</option>
+                                            <option value="Academic">Academic</option>
+                                            <option value="Reference">Reference</option>
+                                            <option value="Science">Science</option>
+                                            <option value="Technology">Technology</option>
+                                        </select>
+                                        <div class="flex gap-2">
+                                            <button @click="addBook()" class="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition">
+                                                Add Book
+                                            </button>
+                                            <button @click="showAddBook = false; newBookTitle = ''; newBookAuthor = ''; newBookISBN = ''; newBookCategory = ''" class="px-3 py-1.5 bg-slate-200 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-300 transition">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="space-y-3">
+                                        <template x-if="libraryBooks.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-book text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No books in library yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">Add your first book to get started</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="book in libraryBooks" :key="book.id">
+                                            <div class="relative group flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition">
+                                                <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <div class="font-medium text-slate-800 text-sm" x-text="book.title"></div>
+                                                    <div class="text-xs text-slate-500">Author: <span x-text="book.author"></span></div>
+                                                    <div class="text-xs text-slate-400">ISBN: <span x-text="book.isbn"></span> • Category: <span x-text="book.category"></span></div>
+                                                </div>
+                                                <span class="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium" x-text="book.status"></span>
+                                                <button @click="deleteBook(book.id)" class="opacity-0 group-hover:opacity-100 transition h-6 w-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center text-xs">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Library Members Section -->
+                                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-sm font-semibold text-slate-800">Library Members</h3>
+                                        <button @click="showAddLibraryMember = !showAddLibraryMember" class="px-3 py-1.5 bg-orange-100 text-orange-500 rounded-lg text-xs font-medium hover:bg-orange-200 transition">
+                                            <i class="fas fa-plus mr-1"></i>Add Member
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Add Library Member Form -->
+                                    <div x-show="showAddLibraryMember" x-transition class="mb-4 p-4 bg-slate-50 rounded-xl">
+                                        <input x-model="newLibraryMemberName" type="text" placeholder="Member name" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                        <select x-model="newLibraryMemberType" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                            <option value="">Select Member Type</option>
+                                            <option value="Student">Student</option>
+                                            <option value="Lecturer">Lecturer</option>
+                                            <option value="Staff">Staff</option>
+                                        </select>
+                                        <input x-model="newLibraryMemberEmail" type="email" placeholder="Email" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                        <div class="flex gap-2">
+                                            <button @click="addLibraryMember()" class="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition">
+                                                Add Member
+                                            </button>
+                                            <button @click="showAddLibraryMember = false; newLibraryMemberName = ''; newLibraryMemberType = ''; newLibraryMemberEmail = ''" class="px-3 py-1.5 bg-slate-200 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-300 transition">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="space-y-3">
+                                        <template x-if="libraryMembers.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-users text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No library members yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">Add your first member to get started</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="member in libraryMembers" :key="member.id">
+                                            <div class="relative group flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition">
+                                                <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <div class="font-medium text-slate-800 text-sm" x-text="member.name"></div>
+                                                    <div class="text-xs text-slate-500">Type: <span x-text="member.type"></span></div>
+                                                    <div class="text-xs text-slate-400">Email: <span x-text="member.email"></span></div>
+                                                </div>
+                                                <button @click="deleteLibraryMember(member.id)" class="opacity-0 group-hover:opacity-100 transition h-6 w-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center text-xs">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Inventory/Asset Management Tab -->
+                        <div x-show="activeTab === 'inventory'" class="mt-6">
+                            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-sm font-semibold text-slate-800">Asset Management</h3>
+                                    <button @click="showAddAsset = !showAddAsset" class="px-3 py-1.5 bg-orange-100 text-orange-500 rounded-lg text-xs font-medium hover:bg-orange-200 transition">
+                                        <i class="fas fa-plus mr-1"></i>Add Asset
+                                    </button>
+                                </div>
+                                
+                                <!-- Add Asset Form -->
+                                <div x-show="showAddAsset" x-transition class="mb-4 p-4 bg-slate-50 rounded-xl">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <input x-model="newAssetName" type="text" placeholder="Asset name" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <select x-model="newAssetCategory" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                            <option value="">Select Category</option>
+                                            <option value="Furniture">Furniture</option>
+                                            <option value="Electronics">Electronics</option>
+                                            <option value="Equipment">Equipment</option>
+                                            <option value="Vehicles">Vehicles</option>
+                                            <option value="Building">Building</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                        <input x-model="newAssetLocation" type="text" placeholder="Location" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                        <select x-model="newAssetStatus" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                            <option value="">Select Status</option>
+                                            <option value="Available">Available</option>
+                                            <option value="In Use">In Use</option>
+                                            <option value="Maintenance">Maintenance</option>
+                                            <option value="Retired">Retired</option>
+                                        </select>
+                                        <input x-model="newAssetPurchaseDate" type="date" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400">
+                                    </div>
+                                    <div class="flex gap-2 mt-3">
+                                        <button @click="addAsset()" class="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition">
+                                            Add Asset
+                                        </button>
+                                        <button @click="showAddAsset = false; newAssetName = ''; newAssetCategory = ''; newAssetLocation = ''; newAssetStatus = ''; newAssetPurchaseDate = ''" class="px-3 py-1.5 bg-slate-200 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-300 transition">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Assets Grid -->
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr class="border-b border-slate-200">
+                                                <th class="text-left py-3 px-4 font-medium text-slate-700">Asset Name</th>
+                                                <th class="text-left py-3 px-4 font-medium text-slate-700">Category</th>
+                                                <th class="text-left py-3 px-4 font-medium text-slate-700">Location</th>
+                                                <th class="text-left py-3 px-4 font-medium text-slate-700">Status</th>
+                                                <th class="text-left py-3 px-4 font-medium text-slate-700">Purchase Date</th>
+                                                <th class="text-left py-3 px-4 font-medium text-slate-700">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-if="assets.length === 0">
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-8">
+                                                        <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                            <i class="fas fa-boxes text-slate-400"></i>
+                                                        </div>
+                                                        <div class="text-sm text-slate-500">No assets registered yet</div>
+                                                        <div class="text-xs text-slate-400 mt-1">Add your first asset to get started</div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <template x-for="asset in assets" :key="asset.id">
+                                                <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                                    <td class="py-3 px-4">
+                                                        <div class="font-medium text-slate-800" x-text="asset.name"></div>
+                                                    </td>
+                                                    <td class="py-3 px-4">
+                                                        <span class="px-2 py-1 bg-purple-100 text-purple-600 rounded-full text-xs font-medium" x-text="asset.category"></span>
+                                                    </td>
+                                                    <td class="py-3 px-4">
+                                                        <div class="text-slate-600" x-text="asset.location"></div>
+                                                    </td>
+                                                    <td class="py-3 px-4">
+                                                        <span class="px-2 py-1 text-xs rounded-full font-medium" 
+                                                              :class="asset.status === 'Available' ? 'bg-green-100 text-green-600' : asset.status === 'In Use' ? 'bg-blue-100 text-blue-600' : asset.status === 'Maintenance' ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-600'" 
+                                                              x-text="asset.status"></span>
+                                                    </td>
+                                                    <td class="py-3 px-4">
+                                                        <div class="text-slate-600" x-text="asset.purchaseDate"></div>
+                                                    </td>
+                                                    <td class="py-3 px-4">
+                                                        <button @click="deleteAsset(asset.id)" class="h-6 w-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center text-xs transition">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hostel/Transport Allocation Tab -->
+                        <div x-show="activeTab === 'allocations'" class="mt-6">
+                            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                                <!-- Hostel Allocations Section -->
+                                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-sm font-semibold text-slate-800">Hostel Allocations</h3>
+                                        <button @click="showAddHostelAllocation = !showAddHostelAllocation" class="px-3 py-1.5 bg-orange-100 text-orange-500 rounded-lg text-xs font-medium hover:bg-orange-200 transition">
+                                            <i class="fas fa-plus mr-1"></i>Add Allocation
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Add Hostel Allocation Form -->
+                                    <div x-show="showAddHostelAllocation" x-transition class="mb-4 p-4 bg-slate-50 rounded-xl">
+                                        <input x-model="newHostelStudent" type="text" placeholder="Student name" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                        <input x-model="newHostelRoom" type="text" placeholder="Room number" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                        <input x-model="newHostelCheckIn" type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                        <div class="flex gap-2">
+                                            <button @click="addHostelAllocation()" class="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition">
+                                                Add Allocation
+                                            </button>
+                                            <button @click="showAddHostelAllocation = false; newHostelStudent = ''; newHostelRoom = ''; newHostelCheckIn = ''" class="px-3 py-1.5 bg-slate-200 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-300 transition">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="space-y-3">
+                                        <template x-if="hostelAllocations.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-home text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No hostel allocations yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">Add your first allocation to get started</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="allocation in hostelAllocations" :key="allocation.id">
+                                            <div class="relative group flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition">
+                                                <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white">
+                                                    <i class="fas fa-home"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <div class="font-medium text-slate-800 text-sm" x-text="allocation.student"></div>
+                                                    <div class="text-xs text-slate-500">Room: <span x-text="allocation.room"></span></div>
+                                                    <div class="text-xs text-slate-400">Check-in: <span x-text="allocation.checkIn"></span></div>
+                                                </div>
+                                                <span class="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium" x-text="allocation.status"></span>
+                                                <button @click="deleteHostelAllocation(allocation.id)" class="opacity-0 group-hover:opacity-100 transition h-6 w-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center text-xs">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Transport Allocations Section -->
+                                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-sm font-semibold text-slate-800">Transport Allocations</h3>
+                                        <button @click="showAddTransportAllocation = !showAddTransportAllocation" class="px-3 py-1.5 bg-orange-100 text-orange-500 rounded-lg text-xs font-medium hover:bg-orange-200 transition">
+                                            <i class="fas fa-plus mr-1"></i>Add Allocation
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Add Transport Allocation Form -->
+                                    <div x-show="showAddTransportAllocation" x-transition class="mb-4 p-4 bg-slate-50 rounded-xl">
+                                        <input x-model="newTransportStudent" type="text" placeholder="Student name" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                        <input x-model="newTransportRoute" type="text" placeholder="Route" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                        <input x-model="newTransportVehicle" type="text" placeholder="Vehicle" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-2 focus:outline-none focus:border-orange-400">
+                                        <div class="flex gap-2">
+                                            <button @click="addTransportAllocation()" class="px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-medium hover:bg-orange-600 transition">
+                                                Add Allocation
+                                            </button>
+                                            <button @click="showAddTransportAllocation = false; newTransportStudent = ''; newTransportRoute = ''; newTransportVehicle = ''" class="px-3 py-1.5 bg-slate-200 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-300 transition">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="space-y-3">
+                                        <template x-if="transportAllocations.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-bus text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No transport allocations yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">Add your first allocation to get started</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="allocation in transportAllocations" :key="allocation.id">
+                                            <div class="relative group flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition">
+                                                <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white">
+                                                    <i class="fas fa-bus"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <div class="font-medium text-slate-800 text-sm" x-text="allocation.student"></div>
+                                                    <div class="text-xs text-slate-500">Route: <span x-text="allocation.route"></span></div>
+                                                    <div class="text-xs text-slate-400">Vehicle: <span x-text="allocation.vehicle"></span></div>
+                                                </div>
+                                                <span class="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium" x-text="allocation.status"></span>
+                                                <button @click="deleteTransportAllocation(allocation.id)" class="opacity-0 group-hover:opacity-100 transition h-6 w-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center text-xs">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentDate = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            console.log('Campus Resources page loaded on:', currentDate.toLocaleDateString('en-US', options));
+        });
+
+        // Alpine.js data and methods for Campus Resources Management
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('campusResourcesApp', () => ({
+                activeTab: 'library',
+                sidebarOpen: false,
+                notifications: [],
+                
+                // Library Management data
+                libraryBooks: [],
+                libraryMembers: [],
+                showAddBook: false,
+                showAddLibraryMember: false,
+                newBookTitle: '',
+                newBookAuthor: '',
+                newBookISBN: '',
+                newBookCategory: '',
+                newLibraryMemberName: '',
+                newLibraryMemberType: '',
+                newLibraryMemberEmail: '',
+                
+                // Inventory/Asset Management data
+                assets: [],
+                showAddAsset: false,
+                newAssetName: '',
+                newAssetCategory: '',
+                newAssetLocation: '',
+                newAssetStatus: '',
+                newAssetPurchaseDate: '',
+                
+                // Hostel/Transport Allocation data
+                hostelAllocations: [],
+                transportAllocations: [],
+                showAddHostelAllocation: false,
+                showAddTransportAllocation: false,
+                newHostelStudent: '',
+                newHostelRoom: '',
+                newHostelCheckIn: '',
+                newTransportStudent: '',
+                newTransportRoute: '',
+                newTransportVehicle: '',
+
+                init() {
+                    this.loadData();
+                },
+
+                async loadData() {
+                    try {
+                        // Load library books
+                        const booksResponse = await window.sharedApiClient.request('/library/books');
+                        if (booksResponse.ok) {
+                            this.libraryBooks = await booksResponse.json();
+                        }
+
+                        // Load library members
+                        const membersResponse = await window.sharedApiClient.request('/library/members');
+                        if (membersResponse.ok) {
+                            this.libraryMembers = await membersResponse.json();
+                        }
+
+                        // Load assets
+                        const assetsResponse = await window.sharedApiClient.request('/assets');
+                        if (assetsResponse.ok) {
+                            this.assets = await assetsResponse.json();
+                        }
+
+                        // Load hostel allocations
+                        const hostelResponse = await window.sharedApiClient.request('/hostel/allocations');
+                        if (hostelResponse.ok) {
+                            this.hostelAllocations = await hostelResponse.json();
+                        }
+
+                        // Load transport allocations
+                        const transportResponse = await window.sharedApiClient.request('/transport/allocations');
+                        if (transportResponse.ok) {
+                            this.transportAllocations = await transportResponse.json();
+                        }
+                    } catch (error) {
+                        console.error('Error loading data:', error);
+                    }
+                },
+
+                switchTab(tab) {
+                    this.activeTab = tab;
+                },
+
+                // Library Management methods
+                async addBook() {
+                    if (!this.newBookTitle.trim() || !this.newBookAuthor.trim() || !this.newBookISBN.trim() || !this.newBookCategory) {
+                        window.tenantAdminSave.showError('Please fill in all book fields');
+                        return;
+                    }
+
+                    const bookData = {
+                        title: this.newBookTitle,
+                        author: this.newBookAuthor,
+                        isbn: this.newBookISBN,
+                        category: this.newBookCategory,
+                        status: 'Available',
+                        addedDate: new Date().toISOString().split('T')[0]
+                    };
+
+                    const result = await window.tenantAdminSave.saveData('/library/books', bookData, {
+                        successMessage: 'Book added successfully!',
+                        errorMessage: 'Failed to add book'
+                    });
+                    
+                    if (result.success) {
+                        this.libraryBooks.unshift({
+                            id: result.data.id || Date.now(),
+                            ...bookData
+                        });
+                        
+                        // Reset form
+                        this.newBookTitle = '';
+                        this.newBookAuthor = '';
+                        this.newBookISBN = '';
+                        this.newBookCategory = '';
+                        this.showAddBook = false;
+                    }
+                },
+
+                async deleteBook(id) {
+                    const result = await window.tenantAdminSave.deleteData('/library/books', id, {
+                        confirmMessage: 'Are you sure you want to delete this book?'
+                    });
+                    
+                    if (result.success) {
+                        this.libraryBooks = this.libraryBooks.filter(book => book.id !== id);
+                    }
+                },
+
+                async addLibraryMember() {
+                    if (!this.newLibraryMemberName.trim() || !this.newLibraryMemberType || !this.newLibraryMemberEmail.trim()) {
+                        window.tenantAdminSave.showError('Please fill in all member fields');
+                        return;
+                    }
+
+                    const memberData = {
+                        name: this.newLibraryMemberName,
+                        type: this.newLibraryMemberType,
+                        email: this.newLibraryMemberEmail,
+                        memberSince: new Date().toISOString().split('T')[0]
+                    };
+
+                    const result = await window.tenantAdminSave.saveData('/library/members', memberData, {
+                        successMessage: 'Library member added successfully!',
+                        errorMessage: 'Failed to add library member'
+                    });
+                    
+                    if (result.success) {
+                        this.libraryMembers.unshift({
+                            id: result.data.id || Date.now(),
+                            ...memberData
+                        });
+                        
+                        // Reset form
+                        this.newLibraryMemberName = '';
+                        this.newLibraryMemberType = '';
+                        this.newLibraryMemberEmail = '';
+                        this.showAddLibraryMember = false;
+                    }
+                },
+
+                async deleteLibraryMember(id) {
+                    const result = await window.tenantAdminSave.deleteData('/library/members', id, {
+                        confirmMessage: 'Are you sure you want to delete this library member?'
+                    });
+                    
+                    if (result.success) {
+                        this.libraryMembers = this.libraryMembers.filter(member => member.id !== id);
+                    }
+                },
+
+                // Inventory/Asset Management methods
+                async addAsset() {
+                    if (!this.newAssetName.trim() || !this.newAssetCategory || !this.newAssetLocation.trim() || !this.newAssetStatus || !this.newAssetPurchaseDate) {
+                        window.tenantAdminSave.showError('Please fill in all asset fields');
+                        return;
+                    }
+
+                    const assetData = {
+                        name: this.newAssetName,
+                        category: this.newAssetCategory,
+                        location: this.newAssetLocation,
+                        status: this.newAssetStatus,
+                        purchaseDate: this.newAssetPurchaseDate
+                    };
+
+                    const result = await window.tenantAdminSave.saveData('/assets', assetData, {
+                        successMessage: 'Asset added successfully!',
+                        errorMessage: 'Failed to add asset'
+                    });
+                    
+                    if (result.success) {
+                        this.assets.unshift({
+                            id: result.data.id || Date.now(),
+                            ...assetData
+                        });
+                        
+                        // Reset form
+                        this.newAssetName = '';
+                        this.newAssetCategory = '';
+                        this.newAssetLocation = '';
+                        this.newAssetStatus = '';
+                        this.newAssetPurchaseDate = '';
+                        this.showAddAsset = false;
+                    }
+                },
+
+                async deleteAsset(id) {
+                    const result = await window.tenantAdminSave.deleteData('/assets', id, {
+                        confirmMessage: 'Are you sure you want to delete this asset?'
+                    });
+                    
+                    if (result.success) {
+                        this.assets = this.assets.filter(asset => asset.id !== id);
+                    }
+                },
+
+                // Hostel Allocation methods
+                async addHostelAllocation() {
+                    if (!this.newHostelStudent.trim() || !this.newHostelRoom.trim() || !this.newHostelCheckIn) {
+                        window.tenantAdminSave.showError('Please fill in all hostel allocation fields');
+                        return;
+                    }
+
+                    const allocationData = {
+                        student: this.newHostelStudent,
+                        room: this.newHostelRoom,
+                        checkIn: this.newHostelCheckIn
+                    };
+
+                    const result = await window.tenantAdminSave.saveData('/hostel/allocations', allocationData, {
+                        successMessage: 'Hostel allocation added successfully!',
+                        errorMessage: 'Failed to add hostel allocation'
+                    });
+                    
+                    if (result.success) {
+                        this.hostelAllocations.unshift({
+                            id: result.data.id || Date.now(),
+                            ...allocationData
+                        });
+                        
+                        // Reset form
+                        this.newHostelStudent = '';
+                        this.newHostelRoom = '';
+                        this.newHostelCheckIn = '';
+                        this.showAddHostelAllocation = false;
+                    }
+                },
+
+                async deleteHostelAllocation(id) {
+                    const result = await window.tenantAdminSave.deleteData('/hostel/allocations', id, {
+                        confirmMessage: 'Are you sure you want to delete this hostel allocation?'
+                    });
+                    
+                    if (result.success) {
+                        this.hostelAllocations = this.hostelAllocations.filter(allocation => allocation.id !== id);
+                    }
+                },
+
+                // Transport Allocation methods
+                async addTransportAllocation() {
+                    if (!this.newTransportStudent.trim() || !this.newTransportRoute.trim() || !this.newTransportVehicle.trim()) {
+                        window.tenantAdminSave.showError('Please fill in all transport allocation fields');
+                        return;
+                    }
+
+                    const allocationData = {
+                        student: this.newTransportStudent,
+                        route: this.newTransportRoute,
+                        vehicle: this.newTransportVehicle
+                    };
+
+                    const result = await window.tenantAdminSave.saveData('/transport/allocations', allocationData, {
+                        successMessage: 'Transport allocation added successfully!',
+                        errorMessage: 'Failed to add transport allocation'
+                    });
+                    
+                    if (result.success) {
+                        this.transportAllocations.unshift({
+                            id: result.data.id || Date.now(),
+                            ...allocationData
+                        });
+                        
+                        // Reset form
+                        this.newTransportStudent = '';
+                        this.newTransportRoute = '';
+                        this.newTransportVehicle = '';
+                        this.showAddTransportAllocation = false;
+                    }
+                },
+
+                async deleteTransportAllocation(id) {
+                    const result = await window.tenantAdminSave.deleteData('/transport/allocations', id, {
+                        confirmMessage: 'Are you sure you want to delete this transport allocation?'
+                    });
+                    
+                    if (result.success) {
+                        this.transportAllocations = this.transportAllocations.filter(allocation => allocation.id !== id);
+                    }
+                },
+
+                // Notification functions
+                unreadCount() {
+                    return this.notifications.filter(n => !n.read).length;
+                }
+            }));
+        });
+    </script>
+</body>
+</html>

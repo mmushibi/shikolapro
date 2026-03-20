@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - Hostel Reports</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        [x-cloak] { display: none !important; }
+        .modal-hidden { display: none !important; }
+        .modal-visible { display: flex !important; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        selectedReport: 'occupancy',
+        dateRange: 'month',
+        startDate: '',
+        endDate: '',
+        showGenerateReport: false,
+        showCheckIn: false,
+        showCheckOut: false,
+        
+        // Button functions
+        quickCheckIn() {
+            console.log('Quick check-in clicked');
+            this.showCheckIn = true;
+        },
+        
+        quickCheckOut() {
+            console.log('Quick check-out clicked');
+            this.showCheckOut = true;
+        },
+        
+        generateReport() {
+            console.log('Generate report clicked');
+            this.showGenerateReport = true;
+        },
+        
+        closeAllModals() {
+            this.showGenerateReport = false;
+            this.showCheckIn = false;
+            this.showCheckOut = false;
+        }
+    }" class="min-h-screen flex">
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="rooms.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-bed"></i>
+                            </span>
+                            <span class="flex-1">Rooms</span>
+                        </a>
+                        <a href="residents.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-friends"></i>
+                            </span>
+                            <span class="flex-1">Residents</span>
+                        </a>
+                        <a href="visitors.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-check"></i>
+                            </span>
+                            <span class="flex-1">Visitors</span>
+                        </a>
+                        <a href="inventory.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-boxes"></i>
+                            </span>
+                            <span class="flex-1">Inventory</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="font-medium flex-1">Reports</span>
+                        </a>
+                        <a href="account.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-cog"></i>
+                            </span>
+                            <span class="flex-1">Account</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Quick Actions Card -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Quick Actions</h4>
+                        <p class="text-xs opacity-90 mb-3">Manage daily hostel operations</p>
+                        <div class="flex gap-2">
+                            <button @click="quickCheckIn()" class="flex-1 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check In
+                            </button>
+                            <button @click="quickCheckOut()" class="flex-1 bg-white text-blue-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                   <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">Home</span>
+                        </a>
+                        <a href="rooms.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-bed"></i>
+                            </span>
+                            <span class="flex-1">Rooms</span>
+                        </a>
+                        <a href="residents.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-friends"></i>
+                            </span>
+                            <span class="flex-1">Residents</span>
+                        </a>
+                        <a href="visitors.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-check"></i>
+                            </span>
+                            <span class="flex-1">Visitors</span>
+                        </a>
+                        <a href="inventory.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-boxes"></i>
+                            </span>
+                            <span class="flex-1">Inventory</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-chart-bar"></i>
+                            </span>
+                            <span class="font-medium flex-1">Reports</span>
+                        </a>
+                        <a href="account.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-cog"></i>
+                            </span>
+                            <span class="flex-1">Account</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- Quick Actions Card -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">Quick Actions</h4>
+                        <p class="text-xs opacity-90 mb-3">Manage daily hostel operations</p>
+                        <div class="flex gap-2">
+                            <button @click="quickCheckIn()" class="flex-1 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check In
+                            </button>
+                            <button @click="quickCheckOut()" class="flex-1 bg-white text-blue-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                                Check Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h1 class="text-2xl font-semibold text-slate-800">Reports & Analytics</h1>
+                            <p class="text-sm text-slate-400 mt-1">Generate and view hostel reports</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button @click="generateReport()" class="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-sm font-medium hover:shadow-lg transition">
+                                <i class="fas fa-file-alt mr-2"></i>Generate Report
+                            </button>
+                            <button class="px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded-xl text-sm font-medium hover:shadow-lg transition">
+                                <i class="fas fa-download mr-2"></i>Export All
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Report Type Selection -->
+                    <div class="flex flex-wrap gap-2 mt-6">
+                        <button @click="selectedReport = 'occupancy'" 
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition"
+                                :class="selectedReport === 'occupancy' ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                            <i class="fas fa-bed mr-2"></i>Occupancy Report
+                        </button>
+                        <button @click="selectedReport = 'financial'" 
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition"
+                                :class="selectedReport === 'financial' ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                            <i class="fas fa-dollar-sign mr-2"></i>Financial Report
+                        </button>
+                        <button @click="selectedReport = 'visitors'" 
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition"
+                                :class="selectedReport === 'visitors' ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                            <i class="fas fa-user-check mr-2"></i>Visitor Report
+                        </button>
+                        <button @click="selectedReport = 'inventory'" 
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition"
+                                :class="selectedReport === 'inventory' ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                            <i class="fas fa-boxes mr-2"></i>Inventory Report
+                        </button>
+                    </div>
+
+                    <!-- Date Range Selection -->
+                    <div class="flex flex-wrap gap-4 mt-6">
+                        <div class="flex gap-2">
+                            <button @click="dateRange = 'day'" 
+                                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                                    :class="dateRange === 'day' ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                                Today
+                            </button>
+                            <button @click="dateRange = 'week'" 
+                                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                                    :class="dateRange === 'week' ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                                This Week
+                            </button>
+                            <button @click="dateRange = 'month'" 
+                                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                                    :class="dateRange === 'month' ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                                This Month
+                            </button>
+                            <button @click="dateRange = 'year'" 
+                                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                                    :class="dateRange === 'year' ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                                This Year
+                            </button>
+                            <button @click="dateRange = 'custom'" 
+                                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                                    :class="dateRange === 'custom' ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                                Custom
+                            </button>
+                        </div>
+                        <div x-show="dateRange === 'custom'" class="flex gap-2">
+                            <input type="date" x-model="startDate" class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="date" x-model="endDate" class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Report Content -->
+                    <div class="mt-6">
+                        <!-- Occupancy Report -->
+                        <div x-show="selectedReport === 'occupancy'" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                                    <div class="text-xs font-medium text-blue-600 uppercase tracking-wide">Average Occupancy</div>
+                                    <div class="text-2xl font-bold text-blue-700 mt-2">0%</div>
+                                    <div class="text-xs text-blue-500 mt-1">No data available</div>
+                                </div>
+                                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+                                    <div class="text-xs font-medium text-green-600 uppercase tracking-wide">Total Revenue</div>
+                                    <div class="text-2xl font-bold text-green-700 mt-2">ZMW 0</div>
+                                    <div class="text-xs text-green-500 mt-1">No data available</div>
+                                </div>
+                                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+                                    <div class="text-xs font-medium text-purple-600 uppercase tracking-wide">Available Rooms</div>
+                                    <div class="text-2xl font-bold text-purple-700 mt-2">0</div>
+                                    <div class="text-xs text-purple-500 mt-1">No data available</div>
+                                </div>
+                            </div>
+
+                            <!-- Occupancy Chart -->
+                            <div class="bg-white border border-slate-200 rounded-xl p-5">
+                                <h3 class="text-sm font-semibold text-slate-800 mb-4">Monthly Occupancy Trend</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-xs text-slate-600 w-12">Jan</span>
+                                        <div class="flex-1 bg-slate-200 rounded-full h-6 overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full" style="width: 0%"></div>
+                                        </div>
+                                        <span class="text-xs font-medium text-slate-700 w-10">0%</span>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-xs text-slate-600 w-12">Feb</span>
+                                        <div class="flex-1 bg-slate-200 rounded-full h-6 overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full" style="width: 0%"></div>
+                                        </div>
+                                        <span class="text-xs font-medium text-slate-700 w-10">0%</span>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-xs text-slate-600 w-12">Mar</span>
+                                        <div class="flex-1 bg-slate-200 rounded-full h-6 overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full" style="width: 0%"></div>
+                                        </div>
+                                        <span class="text-xs font-medium text-slate-700 w-10">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Financial Report -->
+                        <div x-show="selectedReport === 'financial'" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+                                    <div class="text-xs font-medium text-green-600 uppercase tracking-wide">Total Income</div>
+                                    <div class="text-2xl font-bold text-green-700 mt-2">ZMW 0</div>
+                                    <div class="text-xs text-green-500 mt-1">No data available</div>
+                                </div>
+                                <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 border border-red-200">
+                                    <div class="text-xs font-medium text-red-600 uppercase tracking-wide">Total Expenses</div>
+                                    <div class="text-2xl font-bold text-red-700 mt-2">ZMW 0</div>
+                                    <div class="text-xs text-red-500 mt-1">No data available</div>
+                                </div>
+                                <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
+                                    <div class="text-xs font-medium text-emerald-600 uppercase tracking-wide">Net Profit</div>
+                                    <div class="text-2xl font-bold text-emerald-700 mt-2">ZMW 0</div>
+                                    <div class="text-xs text-emerald-500 mt-1">No data available</div>
+                                </div>
+                            </div>
+
+                            <!-- Financial Breakdown -->
+                            <div class="bg-white border border-slate-200 rounded-xl p-5">
+                                <h3 class="text-sm font-semibold text-slate-800 mb-4">Revenue Breakdown</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                                                <i class="fas fa-bed text-blue-600 text-xs"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-sm font-medium text-slate-800">Room Fees</div>
+                                                <div class="text-xs text-slate-500">Monthly rent payments</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-lg font-bold text-slate-800">ZMW 0</div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
+                                                <i class="fas fa-utensils text-green-600 text-xs"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-sm font-medium text-slate-800">Meal Plans</div>
+                                                <div class="text-xs text-slate-500">Cafeteria services</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-lg font-bold text-slate-800">ZMW 0</div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                                                <i class="fas fa-wifi text-purple-600 text-xs"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-sm font-medium text-slate-800">Other Services</div>
+                                                <div class="text-xs text-slate-500">Laundry, internet, etc.</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-lg font-bold text-slate-800">ZMW 0</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Other report types would follow similar structure -->    
+                        <div x-show="selectedReport === 'visitors'" class="text-center py-12">
+                            <div class="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-user-check text-slate-400 text-xl"></i>
+                            </div>
+                            <p class="text-slate-500 font-medium">No visitor data available</p>
+                            <p class="text-slate-400 text-sm mt-1">Visitor reports will appear here once data is loaded</p>
+                        </div>
+                        
+                        <div x-show="selectedReport === 'inventory'" class="text-center py-12">
+                            <div class="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-boxes text-slate-400 text-xl"></i>
+                            </div>
+                            <p class="text-slate-500 font-medium">No inventory data available</p>
+                            <p class="text-slate-400 text-sm mt-1">Inventory reports will appear here once data is loaded</p>
+                        </div>
+                        
+
+                        <div x-show="selectedReport === 'visitors'" class="text-center py-12">
+                            <div class="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-user-check text-slate-400 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-slate-800 mb-2">Visitor Report</h3>
+                            <p class="text-sm text-slate-500">Visitor analytics and trends coming soon</p>
+                        </div>
+
+                        <div x-show="selectedReport === 'inventory'" class="text-center py-12">
+                            <div class="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-boxes text-slate-400 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-slate-800 mb-2">Inventory Report</h3>
+                            <p class="text-sm text-slate-500">Inventory usage and tracking coming soon</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shikola - System Settings</title>
+    <link rel="icon" type="image/png" href="/frontend/public/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/config/config.js"></script>
+    <script src="/shared-assets/js/shared-tour-system.js"></script>
+    <script src="/shared-assets/js/shared-api-client.js"></script>
+    <script src="/shared-assets/js/shared-auth.js"></script>
+    <script src="/shared-assets/js/shared-messages.js"></script>
+    <script src="/shared-assets/js/dashboard-theme.js"></script>
+    <script src="/shared-assets/js/button-functions.js"></script>
+    <script src="/shared-assets/js/portal-auth-guard.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/shared-assets/css/styles.css">
+    <style>
+        /* Font family setup */
+        body {
+            font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Consistent font sizes */
+        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+        .text-sm { font-size: 0.825rem !important; line-height: 1.125rem !important; }
+        .text-base { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .text-lg { font-size: 0.925rem !important; line-height: 1.375rem !important; }
+        .text-xl { font-size: 0.975rem !important; line-height: 1.5rem !important; }
+        .text-2xl { font-size: 1.025rem !important; line-height: 1.625rem !important; }
+        .text-3xl { font-size: 1.075rem !important; line-height: 1.75rem !important; }
+
+        /* Override any larger font sizes */
+        .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+
+        /* Custom scrollbar to match app theme */
+        body, body * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        body::-webkit-scrollbar,
+        body *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        body::-webkit-scrollbar-track,
+        body *::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        body::-webkit-scrollbar-thumb,
+        body *::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #f97316, #ea580c);
+            border-radius: 9999px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover,
+        body *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ea580c, #c2410c);
+        }
+
+        /* Custom animations */
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Ensure consistent small text throughout */
+        h1 { font-size: 1.25rem !important; }
+        h2 { font-size: 1.125rem !important; }
+        h3 { font-size: 1rem !important; }
+        h4 { font-size: 0.925rem !important; }
+        h5 { font-size: 0.875rem !important; }
+        h6 { font-size: 0.825rem !important; }
+        
+        /* Input and button text sizes */
+        input, button, select, textarea {
+            font-size: 0.825rem !important;
+        }
+
+        /* Badge and label text */
+        .badge, .label {
+            font-size: 0.7rem !important;
+        }
+
+        /* Settings card styles */
+        .settings-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .settings-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-color: #f97316;
+        }
+
+        /* Tab styles */
+        .tab-button {
+            position: relative;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to right, #f97316, #ea580c);
+            border-radius: 2px 2px 0 0;
+        }
+
+        /* Toggle switch styles */
+        .toggle-switch {
+            position: relative;
+            width: 3rem;
+            height: 1.5rem;
+            background-color: #cbd5e1;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(to right, #f97316, #ea580c);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 0.125rem;
+            left: 0.125rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(1.5rem);
+        }
+
+        /* Settings category badge */
+        .category-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .category-general {
+            background: linear-gradient(to right, #6366f1, #4f46e5);
+            color: white;
+        }
+
+        .category-security {
+            background: linear-gradient(to right, #dc2626, #b91c1c);
+            color: white;
+        }
+
+        .category-performance {
+            background: linear-gradient(to right, #059669, #047857);
+            color: white;
+        }
+
+        .category-integration {
+            background: linear-gradient(to right, #7c3aed, #6d28d9);
+            color: white;
+        }
+
+        .category-notification {
+            background: linear-gradient(to right, #ca8a04, #a16207);
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div x-data="{
+        sidebarOpen: false,
+        mobileSearchOpen: false,
+        mobileNotificationsOpen: false,
+        mobileProfileOpen: false,
+        mobileSearchQuery: '',
+        pageTitle: 'System Settings',
+        pageSubtitle: 'Configure system-wide settings and preferences',
+        notifications: [],
+        
+        // Settings data
+        settings: [],
+        activeTab: 'general',
+        
+        // General Settings
+        systemName: '',
+        systemVersion: '',
+        systemEmail: '',
+        systemPhone: '',
+        systemAddress: '',
+        systemTimeZone: 'Africa/Lusaka',
+        systemDateFormat: 'DD/MM/YYYY',
+        systemTimeFormat: '24-hour',
+        systemLanguage: 'English',
+        systemCurrency: 'ZMW',
+        
+        // Security Settings
+        passwordPolicy: 'strong',
+        sessionTimeout: '30',
+        twoFactorAuth: false,
+        loginAttempts: '5',
+        passwordExpiry: '90',
+        forcePasswordChange: false,
+        
+        // Performance Settings
+        cacheEnabled: true,
+        cacheTimeout: '3600',
+        compressionEnabled: true,
+        backupFrequency: 'daily',
+        logRetention: '30',
+        maxFileSize: '10',
+        
+        // Integration Settings
+        emailEnabled: true,
+        smsEnabled: false,
+        paymentGateway: 'stripe',
+        cloudStorage: 'aws',
+        apiRateLimit: '1000',
+        
+        // Notification Settings
+        emailNotifications: true,
+        smsNotifications: false,
+        pushNotifications: true,
+        systemAlerts: true,
+        userAlerts: true,
+        maintenanceAlerts: true,
+        
+        // Common methods
+        init() {
+            this.loadSampleData();
+        },
+        
+        loadSampleData() {
+            // Initialize settings categories
+            this.settings = [
+                {
+                    id: 'general',
+                    name: 'General Settings',
+                    description: 'Basic system configuration',
+                    icon: 'fas fa-cogs',
+                    category: 'general'
+                },
+                {
+                    id: 'security',
+                    name: 'Security Settings',
+                    description: 'Security and authentication',
+                    icon: 'fas fa-shield-alt',
+                    category: 'security'
+                },
+                {
+                    id: 'performance',
+                    name: 'Performance Settings',
+                    description: 'System performance optimization',
+                    icon: 'fas fa-tachometer-alt',
+                    category: 'performance'
+                },
+                {
+                    id: 'integration',
+                    name: 'Integration Settings',
+                    description: 'Third-party integrations',
+                    icon: 'fas fa-plug',
+                    category: 'integration'
+                },
+                {
+                    id: 'notification',
+                    name: 'Notification Settings',
+                    description: 'Alert and notification preferences',
+                    icon: 'fas fa-bell',
+                    category: 'notification'
+                }
+            ];
+        },
+        
+        // Tab management
+        switchTab(tab) {
+            console.log('Switching to tab:', tab);
+            this.activeTab = tab;
+        },
+        
+        // Settings management
+        saveSettings() {
+            console.log('Saving system settings...');
+            this.showSuccessMessage('System settings saved successfully');
+        },
+        
+        resetSettings() {
+            console.log('Resetting system settings...');
+            this.showSuccessMessage('System settings reset to defaults');
+        },
+        
+        // Utility methods
+        unreadCount() {
+            return this.notifications.filter(n => !n.read).length;
+        },
+        
+        showSuccessMessage(message) {
+            this.notifications.unshift({
+                id: Date.now(),
+                title: 'Success',
+                message: message,
+                time: 'Just now',
+                read: false,
+                type: 'success'
+            });
+        },
+        
+        getCategoryColor(category) {
+            switch(category) {
+                case 'general': return 'category-general';
+                case 'security': return 'category-security';
+                case 'performance': return 'category-performance';
+                case 'integration': return 'category-integration';
+                case 'notification': return 'category-notification';
+                default: return 'category-general';
+            }
+        }
+    }" x-init="init()" class="min-h-screen flex">
+        <div class="flex-1 flex gap-4 lg:gap-8 w-full">
+            <!-- Sidebar -->
+            <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex-col py-8 px-6 z-40 overflow-y-auto">
+                <div class="flex justify-center mb-10">
+                    <div class="relative">
+                        <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                    </div>
+                </div>
+
+                
+                <nav class="nav-menu space-y-1 text-sm">
+                    <div class="pt-4">
+                        <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="flex-1">System Dashboard</span>
+                        </a>
+                        <a href="users.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-users"></i>
+                            </span>
+                            <span class="flex-1">User Management</span>
+                        </a>
+                        <a href="branches.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-building"></i>
+                            </span>
+                            <span class="flex-1">Branch Management</span>
+                        </a>
+                        <a href="roles.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-user-tag"></i>
+                            </span>
+                            <span class="flex-1">Role Management</span>
+                        </a>
+                        <a href="permissions.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-key"></i>
+                            </span>
+                            <span class="flex-1">Permissions</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cogs"></i>
+                            </span>
+                            <span class="font-medium flex-1">System Settings</span>
+                        </a>
+                        <a href="audit-logs.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-history"></i>
+                            </span>
+                            <span class="flex-1">Audit Logs</span>
+                        </a>
+                        <a href="backups.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-database"></i>
+                            </span>
+                            <span class="flex-1">Backups</span>
+                        </a>
+                        <a href="security.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <span class="flex-1">Security</span>
+                        </a>
+                        <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-file-alt"></i>
+                            </span>
+                            <span class="flex-1">Reports</span>
+                        </a>
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                            <span class="w-6 flex justify-center">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="flex-1">Settings</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- System Stats -->
+                <div class="mt-auto pt-8 border-t border-slate-100">
+                    <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-4 text-white">
+                        <h4 class="font-semibold text-sm mb-2">System Overview</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">Version</span>
+                                <span class="font-medium" x-text="systemVersion"></span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="opacity-75">System Health</span>
+                                <span class="font-medium">Optimal</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar -->
+            <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 flex lg:hidden">
+                <div class="absolute inset-0 bg-slate-900/40" @click="sidebarOpen = false"></div>
+                <aside class="relative h-full w-64 bg-white shadow-xl flex flex-col py-8 px-6 overflow-y-auto">
+                    <button type="button" @click="sidebarOpen = false" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                    <div class="flex justify-center mb-10">
+                        <div class="relative">
+                            <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-15 w-20 rounded-2xl object-cover">
+                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                        </div>
+                    </div>
+
+                    <nav class="nav-menu space-y-1 text-sm">
+                        <div class="pt-4">
+                            <a href="home.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-home"></i>
+                                </span>
+                                <span class="flex-1">System Dashboard</span>
+                            </a>
+                            <a href="users.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-users"></i>
+                                </span>
+                                <span class="flex-1">User Management</span>
+                            </a>
+                            <a href="branches.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-building"></i>
+                                </span>
+                                <span class="flex-1">Branch Management</span>
+                            </a>
+                            <a href="roles.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-user-tag"></i>
+                                </span>
+                                <span class="flex-1">Role Management</span>
+                            </a>
+                            <a href="permissions.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-key"></i>
+                                </span>
+                                <span class="flex-1">Permissions</span>
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-cogs"></i>
+                                </span>
+                                <span class="font-medium flex-1">System Settings</span>
+                            </a>
+                            <a href="audit-logs.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-history"></i>
+                                </span>
+                                <span class="flex-1">Audit Logs</span>
+                            </a>
+                            <a href="backups.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-database"></i>
+                                </span>
+                                <span class="flex-1">Backups</span>
+                            </a>
+                            <a href="security.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <span class="flex-1">Security</span>
+                            </a>
+                            <a href="reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-file-alt"></i>
+                                </span>
+                                <span class="flex-1">Reports</span>
+                            </a>
+                            <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition">
+                                <span class="w-6 flex justify-center">
+                                    <i class="fas fa-cog"></i>
+                                </span>
+                                <span class="flex-1">Settings</span>
+                            </a>
+                        </div>
+                    </nav>
+                </aside>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 w-full px-3 sm:px-6 py-6 lg:pl-72">
+                <div class="bg-white rounded-3xl shadow-xl px-4 sm:px-6 lg:px-8 py-5 lg:py-7 h-full flex flex-col">
+                    <!-- Header -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-100 pb-3">
+                        <div class="flex items-center justify-center w-full lg:w-auto lg:justify-start gap-3">
+                            <button type="button" @click="sidebarOpen = true" class="lg:hidden fixed top-4 left-4 z-50 h-9 w-9 rounded-xl bg-white shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="relative">
+                                <img src="../../../public/images/logo.png" alt="Shikola Pro" class="h-14 w-auto rounded-2xl lg:hidden">
+                                <span class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">Pro</span>
+                            </div>
+                            <div class="hidden lg:block">
+                                <h1 class="text-2xl sm:text-3xl font-semibold text-slate-800">System Settings</h1>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1 hidden sm:block">Configure system-wide settings and preferences</p>
+                            </div>
+                        </div>
+                        
+                        <div class="hidden sm:flex items-center gap-3">
+                            <!-- Notifications -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="relative h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                                    <i class="fas fa-bell"></i>
+                                    <span x-show="unreadCount() > 0" x-text="unreadCount()" class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"></span>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                        <h3 class="font-semibold text-slate-800">Notifications</h3>
+                                        <div class="flex gap-2">
+                                            <button @click="notifications.forEach(n => n.read = true)" class="text-xs text-orange-500 hover:text-orange-600 font-medium">Read All</button>
+                                            <button @click="notifications = []" class="text-xs text-red-500 hover:text-red-600 font-medium">Clear</button>
+                                        </div>
+                                    </div>
+                                    <div class="max-h-96 overflow-y-auto">
+                                        <template x-if="notifications.length === 0">
+                                            <div class="px-4 py-8 text-center">
+                                                <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <i class="fas fa-bell text-slate-400"></i>
+                                                </div>
+                                                <div class="text-sm text-slate-500">No notifications yet</div>
+                                                <div class="text-xs text-slate-400 mt-1">You're all caught up!</div>
+                                            </div>
+                                        </template>
+                                        <template x-for="notification in notifications" :key="notification.id">
+                                            <div class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition cursor-pointer">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="h-2 w-2 rounded-full mt-2" :class="notification.read ? 'bg-slate-300' : 'bg-orange-500'"></div>
+                                                    <div class="flex-1">
+                                                        <div class="font-medium text-slate-800 text-sm" x-text="notification.title"></div>
+                                                        <div class="text-slate-500 text-xs mt-1" x-text="notification.message"></div>
+                                                        <div class="text-slate-400 text-xs mt-1" x-text="notification.time"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Profile -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition">
+                                    <div class="h-8 w-8 rounded-xl bg-gradient-to-br from-red-400 to-pink-500 flex items-center justify-center text-white">
+                                        <i class="fas fa-shield-alt text-sm"></i>
+                                    </div>
+                                    <div class="hidden sm:block text-left">
+                                        <div class="font-medium text-slate-800 text-sm">System Admin</div>
+                                        <div class="text-slate-500 text-xs">Super Administrator</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                                </button>
+                                <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                                    <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                                        <i class="fas fa-user text-slate-400"></i>
+                                        <span class="text-sm text-slate-700">Profile</span>
+                                    </a>
+                                    <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-500 transition">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span class="text-sm">Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Categories Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mt-6">
+                        <template x-for="setting in settings" :key="setting.id">
+                            <div class="settings-card bg-white rounded-2xl border border-slate-100 p-5 cursor-pointer" @click="switchTab(setting.id)">
+                                <div class="flex items-center mb-4">
+                                    <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white">
+                                        <i :class="setting.icon"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="font-semibold text-slate-800" x-text="setting.name"></h3>
+                                        <span class="category-badge" :class="getCategoryColor(setting.category)" x-text="setting.category"></span>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-slate-600" x-text="setting.description"></p>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Settings Content -->
+                    <div class="flex-1 overflow-hidden mt-6">
+                        <div class="h-full overflow-y-auto">
+                            <!-- Tab Navigation -->
+                            <div class="flex border-b border-slate-200 mb-6">
+                                <template x-for="setting in settings" :key="setting.id">
+                                    <button @click="switchTab(setting.id)"
+                                            :class="activeTab === setting.id ? 'text-orange-600 border-b-2 border-orange-600' : 'text-slate-500 hover:text-slate-700'"
+                                            class="px-4 py-3 text-sm font-medium transition-colors tab-button">
+                                        <i :class="setting.icon" class="mr-2"></i>
+                                        <span x-text="setting.name"></span>
+                                    </button>
+                                </template>
+                            </div>
+
+                            <!-- General Settings Tab -->
+                            <div x-show="activeTab === 'general'" x-cloak class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">System Name</label>
+                                        <input type="text" x-model="systemName" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">System Email</label>
+                                        <input type="email" x-model="systemEmail" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">System Phone</label>
+                                        <input type="tel" x-model="systemPhone" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">System Address</label>
+                                        <input type="text" x-model="systemAddress" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Time Zone</label>
+                                        <select x-model="systemTimeZone" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <option value="Africa/Lusaka">Africa/Lusaka</option>
+                                            <option value="Africa/Johannesburg">Africa/Johannesburg</option>
+                                            <option value="Africa/Cairo">Africa/Cairo</option>
+                                            <option value="Europe/London">Europe/London</option>
+                                            <option value="America/New_York">America/New_York</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Date Format</label>
+                                        <select x-model="systemDateFormat" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Time Format</label>
+                                        <select x-model="systemTimeFormat" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <option value="24-hour">24-hour</option>
+                                            <option value="12-hour">12-hour</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Language</label>
+                                        <select x-model="systemLanguage" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <option value="English">English</option>
+                                            <option value="French">French</option>
+                                            <option value="Spanish">Spanish</option>
+                                            <option value="Portuguese">Portuguese</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Currency</label>
+                                        <select x-model="systemCurrency" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <option value="ZMW">ZMW - Zambian Kwacha</option>
+                                            <option value="USD">USD - US Dollar</option>
+                                            <option value="EUR">EUR - Euro</option>
+                                            <option value="GBP">GBP - British Pound</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Security Settings Tab -->
+                            <div x-show="activeTab === 'security'" x-cloak class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Password Policy</label>
+                                        <select x-model="passwordPolicy" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <option value="weak">Weak</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="strong">Strong</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Session Timeout (minutes)</label>
+                                        <input type="number" x-model="sessionTimeout" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Max Login Attempts</label>
+                                        <input type="number" x-model="loginAttempts" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Password Expiry (days)</label>
+                                        <input type="number" x-model="passwordExpiry" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                        <div>
+                                            <h4 class="font-medium text-slate-800">Two-Factor Authentication</h4>
+                                            <p class="text-sm text-slate-600">Require 2FA for all users</p>
+                                        </div>
+                                        <div class="toggle-switch" :class="{ active: twoFactorAuth }" @click="twoFactorAuth = !twoFactorAuth"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                        <div>
+                                            <h4 class="font-medium text-slate-800">Force Password Change</h4>
+                                            <p class="text-sm text-slate-600">Require users to change password on first login</p>
+                                        </div>
+                                        <div class="toggle-switch" :class="{ active: forcePasswordChange }" @click="forcePasswordChange = !forcePasswordChange"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Performance Settings Tab -->
+                            <div x-show="activeTab === 'performance'" x-cloak class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Cache Timeout (seconds)</label>
+                                        <input type="number" x-model="cacheTimeout" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Log Retention (days)</label>
+                                        <input type="number" x-model="logRetention" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Max File Size (MB)</label>
+                                        <input type="number" x-model="maxFileSize" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Backup Frequency</label>
+                                        <select x-model="backupFrequency" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <option value="hourly">Hourly</option>
+                                            <option value="daily">Daily</option>
+                                            <option value="weekly">Weekly</option>
+                                            <option value="monthly">Monthly</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                        <div>
+                                            <h4 class="font-medium text-slate-800">Enable Caching</h4>
+                                            <p class="text-sm text-slate-600">Improve system performance with caching</p>
+                                        </div>
+                                        <div class="toggle-switch" :class="{ active: cacheEnabled }" @click="cacheEnabled = !cacheEnabled"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                        <div>
+                                            <h4 class="font-medium text-slate-800">Enable Compression</h4>
+                                            <p class="text-sm text-slate-600">Compress responses for faster loading</p>
+                                        </div>
+                                        <div class="toggle-switch" :class="{ active: compressionEnabled }" @click="compressionEnabled = !compressionEnabled"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Integration Settings Tab -->
+                            <div x-show="activeTab === 'integration'" x-cloak class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Payment Gateway</label>
+                                        <select x-model="paymentGateway" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <option value="stripe">Stripe</option>
+                                            <option value="paypal">PayPal</option>
+                                            <option value="paystack">Paystack</option>
+                                            <option value="flutterwave">Flutterwave</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Cloud Storage</label>
+                                        <select x-model="cloudStorage" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <option value="aws">AWS S3</option>
+                                            <option value="google">Google Cloud</option>
+                                            <option value="azure">Azure Blob</option>
+                                            <option value="local">Local Storage</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">API Rate Limit (requests/hour)</label>
+                                        <input type="number" x-model="apiRateLimit" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                        <div>
+                                            <h4 class="font-medium text-slate-800">Email Integration</h4>
+                                            <p class="text-sm text-slate-600">Enable email sending functionality</p>
+                                        </div>
+                                        <div class="toggle-switch" :class="{ active: emailEnabled }" @click="emailEnabled = !emailEnabled"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                        <div>
+                                            <h4 class="font-medium text-slate-800">SMS Integration</h4>
+                                            <p class="text-sm text-slate-600">Enable SMS sending functionality</p>
+                                        </div>
+                                        <div class="toggle-switch" :class="{ active: smsEnabled }" @click="smsEnabled = !smsEnabled"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Notification Settings Tab -->
+                            <div x-show="activeTab === 'notification'" x-cloak class="space-y-6">
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                        <div>
+                                            <h4 class="font-medium text-slate-800">Email Notifications</h4>
+                                            <p class="text-sm text-slate-600">Send notifications via email</p>
+                                        </div>
+                                        <div class="toggle-switch" :class="{ active: emailNotifications }" @click="emailNotifications = !emailNotifications"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                        <div>
+                                            <h4 class="font-medium text-slate-800">SMS Notifications</h4>
+                                            <p class="text-sm text-slate-600">Send notifications via SMS</p>
+                                        </div>
+                                        <div class="toggle-switch" :class="{ active: smsNotifications }" @click="smsNotifications = !smsNotifications"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                        <div>
+                                            <h4 class="font-medium text-slate-800">Push Notifications</h4>
+                                            <p class="text-sm text-slate-600">Send push notifications to users</p>
+                                        </div>
+                                        <div class="toggle-switch" :class="{ active: pushNotifications }" @click="pushNotifications = !pushNotifications"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                        <div>
+                                            <h4 class="font-medium text-slate-800">System Alerts</h4>
+                                            <p class="text-sm text-slate-600">Receive system critical alerts</p>
+                                        </div>
+                                        <div class="toggle-switch" :class="{ active: systemAlerts }" @click="systemAlerts = !systemAlerts"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                        <div>
+                                            <h4 class="font-medium text-slate-800">User Alerts</h4>
+                                            <p class="text-sm text-slate-600">Receive user activity alerts</p>
+                                        </div>
+                                        <div class="toggle-switch" :class="{ active: userAlerts }" @click="userAlerts = !userAlerts"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                        <div>
+                                            <h4 class="font-medium text-slate-800">Maintenance Alerts</h4>
+                                            <p class="text-sm text-slate-600">Receive maintenance notifications</p>
+                                        </div>
+                                        <div class="toggle-switch" :class="{ active: maintenanceAlerts }" @click="maintenanceAlerts = !maintenanceAlerts"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-100">
+                        <button @click="resetSettings()" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
+                            <i class="fas fa-undo mr-2"></i>
+                            Reset to Defaults
+                        </button>
+                        <button @click="saveSettings()" class="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl hover:from-orange-500 hover:to-orange-600 transition">
+                            <i class="fas fa-save mr-2"></i>
+                            Save Settings
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
