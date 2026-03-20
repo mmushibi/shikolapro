@@ -10,15 +10,31 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .hero-gradient {
-            background:#00cd71fbfb 100%;
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        }
+        .bg-teal {
+            background-color: #14b8a6;
+        }
+        .bg-ocean {
+            background-color: #0d9488;
+        }
+        .bg-cream {
+            background-color: #faf8f3;
+        }
+        .text-teal {
+            color: #14b8a6;
+        }
+        .text-ocean {
+            color: #0d9488;
         }
         .feature-card {
             transition: all 0.3s ease;
             border: 1px solid #e5e7eb;
+            background-color: #faf8f3;
         }
         .feature-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 25px -5px rgba(13, 184, 166, 0.1);
         }
         .module-icon {
             width: 60px;
@@ -38,20 +54,20 @@
         }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-cream">
     <!-- Navigation -->
     <nav class="bg-white shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <i class="fas fa-graduation-cap text-2xl text-indigo-600 mr-3"></i>
-                    <span class="font-bold text-xl text-gray-800">Shikola Pro</span>
+                    <i class="fas fa-graduation-cap text-2xl text-teal mr-3"></i>
+                    <span class="font-bold text-xl text-ocean">Shikola Pro</span>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="#features" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium" title="View Features">Features</a>
-                    <a href="#modules" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium" title="View Modules">Modules</a>
-                    <a href="#tech" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium" title="View Technology">Technology</a>
-                    <a href="frontend/src/pages/signin.html" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium" title="Login to Shikola Pro">Login</a>
+                    <a href="#features" class="text-gray-600 hover:text-teal px-3 py-2 rounded-md text-sm font-medium" title="View Features">Features</a>
+                    <a href="#modules" class="text-gray-600 hover:text-teal px-3 py-2 rounded-md text-sm font-medium" title="View Modules">Modules</a>
+                    <a href="#tech" class="text-gray-600 hover:text-teal px-3 py-2 rounded-md text-sm font-medium" title="View Technology">Technology</a>
+                    <a href="frontend/src/pages/signin.html" class="bg-teal hover:bg-ocean text-white px-4 py-2 rounded-md text-sm font-medium" title="Login to Shikola Pro">Login</a>
                 </div>
             </div>
         </div>
@@ -64,14 +80,14 @@
                 <h1 class="text-4xl md:text-6xl font-bold mb-6">
                     Comprehensive University Management System
                 </h1>
-                <p class="text-xl md:text-2xl mb-8 text-indigo-100">
+                <p class="text-xl md:text-2xl mb-8 text-teal">
                     Multi-tenant, multi-branch educational institution management with real-time data synchronization
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="frontend/src/pages/signin.html" class="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold transition">
+                    <a href="frontend/src/pages/signin.html" class="bg-white text-teal hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold transition">
                         <i class="fas fa-sign-in-alt mr-2"></i>Get Started
                     </a>
-                    <a href="https://github.com/mmushibi/shikolapro" target="_blank" rel="noopener noreferrer" class="border-2 border-white text-white hover:bg-white hover:text-indigo-600 px-8 py-3 rounded-lg font-semibold transition">
+                    <a href="https://github.com/mmushibi/shikolapro" target="_blank" rel="noopener noreferrer" class="border-2 border-white text-white hover:bg-white hover:text-teal px-8 py-3 rounded-lg font-semibold transition">
                         <i class="fab fa-github mr-2"></i>View on GitHub
                     </a>
                 </div>
@@ -91,7 +107,7 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div class="feature-card bg-white p-6 rounded-xl">
-                    <div class="module-icon bg-blue-100 text-blue-600 mb-4">
+                    <div class="module-icon bg-teal text-white mb-4">
                         <i class="fas fa-users"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Multi-Tenant Architecture</h3>
@@ -99,7 +115,7 @@
                 </div>
                 
                 <div class="feature-card bg-white p-6 rounded-xl">
-                    <div class="module-icon bg-green-100 text-green-600 mb-4">
+                    <div class="module-icon bg-ocean text-white mb-4">
                         <i class="fas fa-sync"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Real-time Synchronization</h3>
@@ -107,7 +123,7 @@
                 </div>
                 
                 <div class="feature-card bg-white p-6 rounded-xl">
-                    <div class="module-icon bg-purple-100 text-purple-600 mb-4">
+                    <div class="module-icon bg-teal text-white mb-4">
                         <i class="fas fa-database"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Comprehensive Data Management</h3>
@@ -115,7 +131,7 @@
                 </div>
                 
                 <div class="feature-card bg-white p-6 rounded-xl">
-                    <div class="module-icon bg-red-100 text-red-600 mb-4">
+                    <div class="module-icon bg-ocean text-white mb-4">
                         <i class="fas fa-shield-alt"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Enterprise Security</h3>
@@ -123,7 +139,7 @@
                 </div>
                 
                 <div class="feature-card bg-white p-6 rounded-xl">
-                    <div class="module-icon bg-yellow-100 text-yellow-600 mb-4">
+                    <div class="module-icon bg-teal text-white mb-4">
                         <i class="fas fa-search"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Global Search</h3>
@@ -131,7 +147,7 @@
                 </div>
                 
                 <div class="feature-card bg-white p-6 rounded-xl">
-                    <div class="module-icon bg-indigo-100 text-indigo-600 mb-4">
+                    <div class="module-icon bg-ocean text-white mb-4">
                         <i class="fas fa-mobile-alt"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Responsive Design</h3>
@@ -153,7 +169,7 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 <div class="text-center">
-                    <div class="module-icon bg-indigo-100 text-indigo-600 mb-4 mx-auto">
+                <div class="module-icon bg-teal text-white mb-4 mx-auto">
                         <i class="fas fa-cog"></i>
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Admin Portal</h3>
@@ -161,7 +177,7 @@
                 </div>
                 
                 <div class="text-center">
-                    <div class="module-icon bg-blue-100 text-blue-600 mb-4 mx-auto">
+                    <div class="module-icon bg-ocean text-white mb-4 mx-auto">
                         <i class="fas fa-users-cog"></i>
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">HR Management</h3>
@@ -169,7 +185,7 @@
                 </div>
                 
                 <div class="text-center">
-                    <div class="module-icon bg-green-100 text-green-600 mb-4 mx-auto">
+                    <div class="module-icon bg-teal text-white mb-4 mx-auto">
                         <i class="fas fa-graduation-cap"></i>
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Academic Registry</h3>
@@ -177,7 +193,7 @@
                 </div>
                 
                 <div class="text-center">
-                    <div class="module-icon bg-yellow-100 text-yellow-600 mb-4 mx-auto">
+                    <div class="module-icon bg-ocean text-white mb-4 mx-auto">
                         <i class="fas fa-dollar-sign"></i>
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Financial Management</h3>
@@ -185,7 +201,7 @@
                 </div>
                 
                 <div class="text-center">
-                    <div class="module-icon bg-purple-100 text-purple-600 mb-4 mx-auto">
+                    <div class="module-icon bg-teal text-white mb-4 mx-auto">
                         <i class="fas fa-home"></i>
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Hostel Management</h3>
@@ -207,7 +223,7 @@
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
                 <div class="text-center">
-                    <div class="text-4xl text-green-600 mb-4">
+                    <div class="text-4xl text-teal mb-4">
                         <i class="fab fa-node-js"></i>
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Node.js</h3>
@@ -215,7 +231,7 @@
                 </div>
                 
                 <div class="text-center">
-                    <div class="text-4xl text-blue-600 mb-4">
+                    <div class="text-4xl text-ocean mb-4">
                         <i class="fab fa-js"></i>
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Express.js</h3>
@@ -223,7 +239,7 @@
                 </div>
                 
                 <div class="text-center">
-                    <div class="text-4xl text-cyan-600 mb-4">
+                    <div class="text-4xl text-teal mb-4">
                         <i class="fas fa-wind"></i>
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Tailwind CSS</h3>
@@ -231,7 +247,7 @@
                 </div>
                 
                 <div class="text-center">
-                    <div class="text-4xl text-orange-600 mb-4">
+                    <div class="text-4xl text-ocean mb-4">
                         <i class="fas fa-bolt"></i>
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Alpine.js</h3>
@@ -242,26 +258,28 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="py-20 bg-indigo-600">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl font-bold text-white mb-4">Ready to Get Started?</h2>
-            <p class="text-xl text-indigo-100 mb-8 max-w-3xl mx-auto">
-                Deploy Shikola Pro and transform your educational institution management
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="frontend/src/pages/signin.html" class="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold transition">
-                    <i class="fas fa-rocket mr-2"></i>Launch Demo
-                </a>
-                <a href="https://github.com/mmushibi/shikolapro" target="_blank" class="border-2 border-white text-white hover:bg-white hover:text-indigo-600 px-8 py-3 rounded-lg font-semibold transition">
-                    <i class="fab fa-github mr-2"></i>View Source Code
-                </a>
+    <section class="py-20 bg-teal">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-white mb-4">Ready to Get Started?</h2>
+                <p class="text-xl text-teal-100 mb-8 max-w-3xl mx-auto">
+                    Deploy Shikola Pro and transform your educational institution management
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="frontend/src/pages/signin.html" class="bg-white text-teal hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold transition">
+                        <i class="fas fa-rocket mr-2"></i>Launch Demo
+                    </a>
+                    <a href="https://github.com/mmushibi/shikolapro" target="_blank" rel="noopener noreferrer" class="border-2 border-white text-white hover:bg-white hover:text-teal px-8 py-3 rounded-lg font-semibold transition">
+                        <i class="fab fa-github mr-2"></i>View Source Code
+                    </a>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
     <footer class="bg-gray-900 text-white py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
                     <h3 class="text-lg font-semibold mb-4">Shikola Pro</h3>
@@ -272,8 +290,8 @@
                     <ul class="space-y-2">
                         <li><a href="#features" class="text-gray-400 hover:text-white transition">Features</a></li>
                         <li><a href="#modules" class="text-gray-400 hover:text-white transition">Modules</a></li>
-                        <li><a href="#tech" class="text-gray-400 hover:text-white transition">Technology</a></li>
-                        <li><a href="frontend/src/pages/signin.html" class="text-gray-400 hover:text-white transition">Login</a></li>
+                        <li><a href="#tech" class="text-gray-400 hover:text-white transition" title="View Technology">Technology</a></li>
+                        <li><a href="frontend/src/pages/signin.html" class="text-gray-400 hover:text-white transition" title="Login to Shikola Pro">Login</a></li>
                     </ul>
                 </div>
                 <div>
